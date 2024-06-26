@@ -44,6 +44,8 @@ files/helm/fastgpt/fastgpt-0.1.0.tgz
 files/helm/fastgpt/charts/*.tgz
 
 tmp/
+projects/app/.next_org/
+__MACOSX/
 
 scripts/openapi/
 patches-v4/
