@@ -2,125 +2,31 @@ import { DatasetTypeEnum } from '@fastgpt/global/core/dataset/constants';
 import { MongoDataset } from '@fastgpt/service/core/dataset/schema';
 import { authUserPer } from '@fastgpt/service/support/permission/user/auth';
 import { NextAPI } from '@/service/middleware/entry';
-import { DatasetPermission } from '@fastgpt/global/support/permission/dataset/controller';
-import {
-  PerResourceTypeEnum,
-  ReadPermissionVal
-} from '@fastgpt/global/support/permission/constant';
-import { MongoResourcePermission } from '@fastgpt/service/support/permission/schema';
-import { DatasetDefaultPermissionVal } from '@fastgpt/global/support/permission/dataset/constant';
-import { ParentIdType } from '@fastgpt/global/common/parentFolder/type';
-import { parseParentIdInMongo } from '@fastgpt/global/common/parentFolder/utils';
-import { ApiRequestProps } from '@fastgpt/service/type/next';
-import { authDataset } from '@fastgpt/service/support/permission/dataset/auth';
-import { replaceRegChars } from '@fastgpt/global/common/string/tools';
-import { getGroupsByTmbId } from '@fastgpt/service/support/permission/memberGroup/controllers';
-import { concatPer } from '@fastgpt/service/support/permission/controller';
-import { getOrgIdSetWithParentByTmbId } from '@fastgpt/service/support/permission/org/controllers';
-import { addSourceMember } from '@fastgpt/service/support/user/utils';
-import { getEmbeddingModel } from '@fastgpt/service/core/ai/model';
+import { ReadPermissionVal } from '@fastgpt/global/support/permission/constant';
+import { TeamMemberRoleEnum } from '@fastgpt/global/support/user/team/constant';
 
-export type GetDatasetListBody = {
-  parentId: ParentIdType;
-  type?: DatasetTypeEnum;
-  searchKey?: string;
-};
+async function handler(req: NextApiRequest, res: NextApiResponse<any>) {
+  const { parentId, type } = req.query as { parentId?: string; type?: DatasetTypeEnum };
 
-async function handler(req: ApiRequestProps<GetDatasetListBody>) {
-  const { parentId, type, searchKey } = req.body;
+  // 凭证校验
+  const { teamId, tmbId, permission, teamPer } = await authUserPer({
+    req,
+    authToken: true,
+    authApiKey: true,
+    per: ReadPermissionVal
+  });
 
-  // Auth user permission
-  const [{ tmbId, teamId, permission: teamPer }] = await Promise.all([
-    authUserPer({
-      req,
-      authToken: true,
-      authApiKey: true,
-      per: ReadPermissionVal
-    }),
-    ...(parentId
-      ? [
-          authDataset({
-            req,
-            authToken: true,
-            authApiKey: true,
-            per: ReadPermissionVal,
-            datasetId: parentId
-          })
-        ]
-      : [])
-  ]);
+  // 禁止 visitor 角色访问
+  if (teamPer.role === TeamMemberRoleEnum.visitor) {
+    throw new Error('无权访问');
+  }
 
-  // Get team all app permissions
-  const [perList, myGroupMap, myOrgSet] = await Promise.all([
-    MongoResourcePermission.find({
-      resourceType: PerResourceTypeEnum.dataset,
-      teamId,
-      resourceId: {
-        $exists: true
-      }
-    }).lean(),
-    getGroupsByTmbId({
-      tmbId,
-      teamId
-    }).then((item) => {
-      const map = new Map<string, 1>();
-      item.forEach((item) => {
-        map.set(String(item._id), 1);
-      });
-      return map;
-    }),
-    getOrgIdSetWithParentByTmbId({
-      teamId,
-      tmbId
-    })
-  ]);
-  const myPerList = perList.filter(
-    (item) =>
-      String(item.tmbId) === String(tmbId) ||
-      myGroupMap.has(String(item.groupId)) ||
-      myOrgSet.has(String(item.orgId))
-  );
-
-  const findDatasetQuery = (() => {
-    // Filter apps by permission, if not owner, only get apps that I have permission to access
-    const idList = { _id: { $in: myPerList.map((item) => item.resourceId) } };
-    const datasetPerQuery = teamPer.isOwner
-      ? {}
-      : parentId
-        ? {
-            $or: [idList, parseParentIdInMongo(parentId)]
-          }
-        : { $or: [idList, { parentId: null }] };
-
-    const searchMatch = searchKey
-      ? {
-          $or: [
-            { name: { $regex: new RegExp(`${replaceRegChars(searchKey)}`, 'i') } },
-            { intro: { $regex: new RegExp(`${replaceRegChars(searchKey)}`, 'i') } }
-          ]
-        }
-      : {};
-
-    if (searchKey) {
-      return {
-        ...datasetPerQuery,
-        teamId,
-        ...searchMatch
-      };
-    }
-
-    return {
-      ...datasetPerQuery,
-      teamId,
-      ...(type ? (Array.isArray(type) ? { type: { $in: type } } : { type }) : {}),
-      ...parseParentIdInMongo(parentId)
-    };
-  })();
-
-  const myDatasets = await MongoDataset.find(findDatasetQuery)
-    .sort({
-      updateTime: -1
-    })
+  const datasets = await MongoDataset.find({
+    ...mongoRPermission({ teamId, tmbId, permission }),
+    ...(parentId !== undefined && { parentId: parentId || null }),
+    ...(type && { type })
+  })
+    .sort({ updateTime: -1 })
     .lean();
 
   const formatDatasets = myDatasets

@@ -1,0 +1,63 @@
+# Add directories or file patterns to ignore during indexing (e.g. foo/ or *.csv)
+
+# 依赖目录
+node_modules/
+.next/
+dist/
+build/
+
+# 数据和缓存目录
+data/
+.cache/
+.temp/
+
+# 文档和资源
+docSite/
+files/
+docs/
+
+# Python相关
+python/
+*.pyc
+__pycache__/
+
+# 开发工具和配置
+.vscode/
+.idea/
+.git/
+.github/
+.husky/
+
+# 环境和配置文件
+.env*
+config.*.json
+
+# 日志文件
+*.log
+logs/
+
+# 打包和压缩文件
+*.zip
+*.tar.gz
+*.tgz
+
+# 测试文件
+test/
+tests/
+__tests__/
+*.test.ts
+*.spec.ts
+
+# 其他不需要索引的文件类型
+*.md
+*.svg
+*.ico
+*.png
+*.jpg
+*.jpeg
+*.gif
+*.pdf
+*.csv
+*.xlsx
+*.doc
+*.docx
