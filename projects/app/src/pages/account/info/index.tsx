@@ -599,7 +599,7 @@ const Other = ({ onOpenContact }: { onOpenContact: () => void }) => {
   return (
     <Box>
       <Grid gridGap={4} mt={3}>
-        {feConfigs?.docUrl && (
+        {/* {feConfigs?.docUrl && (
           <Link
             href={getDocPath('/docs/intro')}
             target="_blank"
@@ -608,7 +608,29 @@ const Other = ({ onOpenContact }: { onOpenContact: () => void }) => {
           >
             <MyIcon name={'common/courseLight'} w={'18px'} color={'myGray.600'} />
             <Box ml={2} flex={1}>
-              {t('account_info:help_document')}
+              {t('system.Help Document')}
+            </Box>
+          </Link>
+        )} */}
+        {feConfigs?.chatbotUrl && (
+          <Link
+            href={feConfigs.chatbotUrl}
+            target="_blank"
+            display={'flex'}
+            py={3}
+            px={6}
+            bg={'white'}
+            border={theme.borders.sm}
+            borderWidth={'1.5px'}
+            borderRadius={'md'}
+            alignItems={'center'}
+            userSelect={'none'}
+            textDecoration={'none !important'}
+            fontSize={'sm'}
+          >
+            <MyIcon name={'core/app/aiLight'} w={'18px'} />
+            <Box ml={2} flex={1}>
+              {t('common.system.Help Chatbot')}
             </Box>
           </Link>
         )}

@@ -192,26 +192,20 @@ const Navbar = ({ unread }: { unread: number }) => {
           </Link>
         </Box>
       )}
-
-      {feConfigs?.navbarItems
-        ?.filter((item) => item.isActive)
-        .map((item) => (
-          <MyTooltip key={item.id} label={item.name} placement={'right-end'}>
-            <Link
-              as={NextLink}
-              href={item.url}
-              target={'_blank'}
-              {...itemStyles}
-              {...hoverStyle}
-              mt={0}
-              color={'myGray.400'}
-              height={'48px'}
-            >
-              <Avatar src={item.avatar} borderRadius={'md'} width={'26px'} height={'26px'} />
-            </Link>
-          </MyTooltip>
-        ))}
-
+      {/* {(feConfigs?.docUrl || feConfigs?.chatbotUrl) && (
+        <MyTooltip label={t('common.system.Use Helper')} placement={'right-end'}>
+          <Link
+            {...itemStyles}
+            {...hoverStyle}
+            href={feConfigs?.chatbotUrl || getDocPath('/docs/intro')}
+            target="_blank"
+            mb={0}
+            color={'myGray.500'}
+          >
+            <MyIcon name={'common/courseLight'} width={'24px'} height={'24px'} />
+          </Link>
+        </MyTooltip>
+      )}
       {feConfigs?.show_git && (
         <MyTooltip label={`Git Star: ${gitStar}`} placement={'right-end'}>
           <Link
@@ -227,7 +221,7 @@ const Navbar = ({ unread }: { unread: number }) => {
             <MyIcon name={'common/gitInlight'} width={'26px'} height={'26px'} />
           </Link>
         </MyTooltip>
-      )}
+      )} */}
     </Flex>
   );
 };
