@@ -11,6 +11,8 @@ import { ChatBoxContext } from '../Provider';
 import { useContextSelector } from 'use-context-selector';
 import MyImage from '@fastgpt/web/components/common/Image/MyImage';
 import { ChatRecordContext } from '@/web/core/chat/context/chatRecordContext';
+import { consume } from '@/web/support/user/api';
+import { useUserStore } from '@/web/support/user/useUserStore';
 
 export type ChatControllerProps = {
   isLastChild: boolean;
@@ -113,6 +115,7 @@ const ChatController = ({
       {showVoiceIcon &&
         hasAudio &&
         (() => {
+          const { userInfo } = useUserStore();
           const isPlayingChat = chat.dataId === audioPlayingChatId;
           if (isPlayingChat && audioPlaying) {
             return (
@@ -144,6 +147,28 @@ const ChatController = ({
                 name={'common/voiceLight'}
                 _hover={{ color: '#E74694' }}
                 onClick={async () => {
+                  // Adam: 语音朗读计费
+                  if (userInfo) {
+                    const tokenPattern = /[a-zA-Z0-9.,!?;:'"()]/; // 匹配英文字母和标点符号的正则表达式
+                    let count = 0;
+                    for (let i = 0; i < chatText.length; i++) {
+                      if (tokenPattern.test(chatText[i])) {
+                        count += 0.5; // 英文字母和标点符号算作半个token
+                      } else {
+                        count += 1.0; // 其他字符算作2个token
+                      }
+                    }
+                    count = Math.floor(count);
+                    const points = (0.06 * count) / 1000; // Adam: 写死的tts-1价格，0.06/千token
+                    console.log('count=', count, ' points=', points);
+                    consume({
+                      userId: userInfo._id,
+                      points
+                    });
+                  } else {
+                    return;
+                  }
+
                   setAudioPlayingChatId(chat.dataId);
                   const response = await playAudioByText({
                     buffer: chat.ttsBuffer,

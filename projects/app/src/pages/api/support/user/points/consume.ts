@@ -20,7 +20,9 @@ const consumePoints = async (req: NextApiRequest, res: NextApiResponse) => {
       user.balance -= points;
       await user.save();
 
-      return res.status(200).json({ message: 'Points consumed successfully', points: user.points });
+      return res
+        .status(200)
+        .json({ message: 'Points consumed successfully', points: user.balance });
     } catch (error) {
       console.error('Error consuming points:', error);
       return res.status(500).json({ message: 'Internal server error' });
