@@ -18,6 +18,8 @@ import FilePreview from '../../components/FilePreview';
 import { useFileUpload } from '../hooks/useFileUpload';
 import ComplianceTip from '@/components/common/ComplianceTip/index';
 import { useToast } from '@fastgpt/web/hooks/useToast';
+import { consume } from '@/web/support/user/api';
+import { useUserStore } from '@/web/support/user/useUserStore';
 
 const InputGuideBox = dynamic(() => import('./InputGuideBox'));
 
@@ -41,6 +43,7 @@ const ChatInput = ({
   resetInputVal: (val: ChatBoxInputType) => void;
   chatForm: UseFormReturn<ChatBoxInputFormType>;
 }) => {
+  const { userInfo } = useUserStore();
   const { t } = useTranslation();
   const { toast } = useToast();
   const { isPc } = useSystem();
@@ -121,6 +124,27 @@ const ChatInput = ({
   const onWhisperRecord = useCallback(() => {
     const finishWhisperTranscription = (text: string) => {
       if (!text) return;
+      // Adam: 语音输入计费
+      if (userInfo) {
+        const tokenPattern = /[a-zA-Z0-9.,!?;:'"()]/; // 匹配英文字母和标点符号的正则表达式
+        let count = 0;
+        for (let i = 0; i < text.length; i++) {
+          if (tokenPattern.test(text[i])) {
+            count += 0.5; // 英文字母和标点符号算作半个token
+          } else {
+            count += 1.0; // 其他字符算作2个token
+          }
+        }
+        count = Math.floor(count);
+        const points = (0.06 * count) / 1000; // Adam: 写死的whisper-1价格，0.06/千token
+        console.log('count=', count, ' points=', points);
+        consume({
+          userId: userInfo._id,
+          points
+        });
+      } else {
+        return;
+      }
       if (whisperConfig?.autoSend) {
         onSendMessage({
           text,

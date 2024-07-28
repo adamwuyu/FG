@@ -65,12 +65,7 @@ export const useAudioPlay = (
         })
       }).finally(() => {
         setAudioLoading(false);
-        console.log('\n\n\n finish');
       });
-
-      if (response) {
-        console.log(teamToken);
-      }
 
       if (!response.body || !response.ok) {
         const data = await response.json();
