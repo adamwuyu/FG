@@ -1,23 +1,28 @@
 import React, { useState } from 'react';
 import { Box, Button, Input, Text, useToast } from '@chakra-ui/react';
 import { useUserStore } from '@/web/support/user/useUserStore';
-import MyIcon from '@fastgpt/web/components/common/Icon';
-import MyTooltip from '@fastgpt/web/components/common/MyTooltip';
 
 const PointsPage = () => {
   const { userInfo } = useUserStore();
   const [points, setPoints] = useState(0);
   const toast = useToast();
 
-  const handleConsumePoints = async () => {
-    if (!userInfo) {
-      toast({
-        title: '用户未登录',
-        status: 'warning'
-      });
-      return;
-    }
+  console.log(userInfo);
+  if (!userInfo) {
+    toast({
+      title: '用户未登录',
+      status: 'warning'
+    });
+    return;
+  } else if (userInfo.username !== 'root') {
+    toast({
+      title: 'URL错误',
+      status: 'warning'
+    });
+    return;
+  }
 
+  const handleConsumePoints = async () => {
     try {
       const response = await fetch('/api/support/user/points/consume', {
         method: 'POST',
