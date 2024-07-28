@@ -250,7 +250,7 @@ const MyInfo = ({ onOpenContact }: { onOpenContact: () => void }) => {
         </Flex>
         <Flex alignItems={'center'} mt={6}>
           <Box {...labelStyles}>{t('user.Balance')}:&nbsp;</Box>
-          <Box flex={1}>{userInfo?.balance.toFixed(4)}元</Box>
+          <Box flex={1}>{userInfo?.balance.toFixed(4)}$</Box>
         </Flex>
         {feConfigs?.isPlus && (
           <Flex mt={6} alignItems={'center'}>

@@ -1,8 +1,16 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import NextHead from '@/components/common/NextHead';
 import { useRouter } from 'next/router';
 import { getInitChatInfo } from '@/web/core/chat/api';
-import { Box, Flex, Drawer, DrawerOverlay, DrawerContent, useTheme } from '@chakra-ui/react';
+import {
+  Box,
+  Flex,
+  Drawer,
+  DrawerOverlay,
+  DrawerContent,
+  useTheme,
+  useDisclosure
+} from '@chakra-ui/react';
 import { streamFetch } from '@/web/common/api/fetch';
 import { useChatStore } from '@/web/core/chat/context/useChatStore';
 import { useToast } from '@fastgpt/web/hooks/useToast';
@@ -40,29 +48,54 @@ import ChatRecordContextProvider, {
 const CustomPluginRunBox = dynamic(() => import('@/pageComponents/chat/CustomPluginRunBox'));
 
 const Chat = ({ myApps }: { myApps: AppListItemType[] }) => {
+  const { userInfo } = useUserStore();
   const router = useRouter();
   const theme = useTheme();
   const { t } = useTranslation();
+  const { toast } = useToast();
+
+  if (!userInfo) {
+    useEffect(() => {
+      toast({
+        title: '用户未登录',
+        status: 'warning'
+      });
+    }, []);
+    return null;
+  } else if (userInfo?.balance <= 0) {
+    useEffect(() => {
+      toast({
+        title: '余额不足，请充值。微信:adamwuyu',
+        status: 'warning'
+      });
+    }, []);
+    return (
+      <Flex h={'100%'}>
+        <NextHead>
+          <title>余额不足，请充值。微信:adamwuyu</title>
+        </NextHead>
+      </Flex>
+    );
+  }
+
+  const forbidRefresh = useRef(false);
+
+  const { lastChatAppId, setLastChatAppId, lastChatId, chatId, appId, outLinkAuthData } =
+    useChatStore();
+
   const { isPc } = useSystem();
+  const { isOpen: isOpenSlider, onClose: onCloseSlider } = useDisclosure();
 
-  const { userInfo } = useUserStore();
-  const { setLastChatAppId, chatId, appId, outLinkAuthData } = useChatStore();
-
-  const isOpenSlider = useContextSelector(ChatContext, (v) => v.isOpenSlider);
-  const onCloseSlider = useContextSelector(ChatContext, (v) => v.onCloseSlider);
-  const forbidLoadChat = useContextSelector(ChatContext, (v) => v.forbidLoadChat);
   const onChangeChatId = useContextSelector(ChatContext, (v) => v.onChangeChatId);
   const onUpdateHistoryTitle = useContextSelector(ChatContext, (v) => v.onUpdateHistoryTitle);
-
   const resetVariables = useContextSelector(ChatItemContext, (v) => v.resetVariables);
   const isPlugin = useContextSelector(ChatItemContext, (v) => v.isPlugin);
   const chatBoxData = useContextSelector(ChatItemContext, (v) => v.chatBoxData);
   const setChatBoxData = useContextSelector(ChatItemContext, (v) => v.setChatBoxData);
-
   const chatRecords = useContextSelector(ChatRecordContext, (v) => v.chatRecords);
   const totalRecordsCount = useContextSelector(ChatRecordContext, (v) => v.totalRecordsCount);
+  const forbidLoadChat = useContextSelector(ChatContext, (v) => v.forbidLoadChat);
 
-  // Load chat init data
   const { loading } = useRequest2(
     async () => {
       if (!appId || forbidLoadChat.current) return;
@@ -70,10 +103,8 @@ const Chat = ({ myApps }: { myApps: AppListItemType[] }) => {
       const res = await getInitChatInfo({ appId, chatId });
       res.userAvatar = userInfo?.avatar;
 
-      // Wait for state update to complete
       setChatBoxData(res);
 
-      // reset chat variables
       resetVariables({
         variables: res.variables,
         variableList: res.app?.chatConfig?.variables
@@ -83,7 +114,6 @@ const Chat = ({ myApps }: { myApps: AppListItemType[] }) => {
       manual: false,
       refreshDeps: [appId, chatId],
       onError(e: any) {
-        // reset all chat tore
         if (e?.code === 501) {
           setLastChatAppId('');
           router.replace('/app/list');
@@ -110,11 +140,10 @@ const Chat = ({ myApps }: { myApps: AppListItemType[] }) => {
       generatingMessage,
       variables
     }: StartChatFnProps) => {
-      // Just send a user prompt
-      const histories = messages.slice(-1);
+      const historiesSlice = messages.slice(-1);
       const { responseText, responseData } = await streamFetch({
         data: {
-          messages: histories,
+          messages: historiesSlice,
           variables,
           responseChatItemId,
           appId,
@@ -124,11 +153,9 @@ const Chat = ({ myApps }: { myApps: AppListItemType[] }) => {
         abortCtrl: controller
       });
 
-      const newTitle = getChatTitleFromChatMessage(GPTMessages2Chats(histories)[0]);
+      const newTitle = getChatTitleFromChatMessage(GPTMessages2Chats(historiesSlice)[0]);
 
-      // new chat
       onUpdateHistoryTitle({ chatId, newTitle });
-      // update chat window
       setChatBoxData((state) => ({
         ...state,
         title: newTitle
@@ -138,6 +165,7 @@ const Chat = ({ myApps }: { myApps: AppListItemType[] }) => {
     },
     [appId, chatId, onUpdateHistoryTitle, setChatBoxData, forbidLoadChat]
   );
+
   const RenderHistorySlider = useMemo(() => {
     const Children = (
       <ChatHistorySlider confirmClearText={t('common:core.chat.Confirm to clear history')} />
@@ -162,7 +190,6 @@ const Chat = ({ myApps }: { myApps: AppListItemType[] }) => {
   return (
     <Flex h={'100%'}>
       <NextHead title={chatBoxData.app.name} icon={chatBoxData.app.avatar}></NextHead>
-      {/* pc show myself apps */}
       {isPc && (
         <Box borderRight={theme.borders.base} w={'220px'} flexShrink={0}>
           <SliderApps apps={myApps} activeAppId={appId} />
@@ -171,9 +198,7 @@ const Chat = ({ myApps }: { myApps: AppListItemType[] }) => {
 
       <PageContainer isLoading={loading} flex={'1 0 0'} w={0} p={[0, '16px']} position={'relative'}>
         <Flex h={'100%'} flexDirection={['column', 'row']}>
-          {/* pc always show history. */}
           {RenderHistorySlider}
-          {/* chat container */}
           <Flex
             position={'relative'}
             h={[0, '100%']}
@@ -181,15 +206,12 @@ const Chat = ({ myApps }: { myApps: AppListItemType[] }) => {
             flex={'1 0 0'}
             flexDirection={'column'}
           >
-            {/* header */}
             <ChatHeader
               totalRecordsCount={totalRecordsCount}
               apps={myApps}
               history={chatRecords}
               showHistory
             />
-
-            {/* chat box */}
             <Box flex={'1 0 0'} bg={'white'}>
               {isPlugin ? (
                 <CustomPluginRunBox
@@ -233,9 +255,7 @@ const Render = (props: { appId: string; isStandalone?: string }) => {
     }
   );
 
-  // 初始化聊天框
   useMount(async () => {
-    // pc: redirect to latest model chat
     if (!appId) {
       const apps = await loadMyApps();
       if (apps.length === 0) {
@@ -255,7 +275,6 @@ const Render = (props: { appId: string; isStandalone?: string }) => {
     }
     setSource('online');
   });
-  // Watch appId
   useEffect(() => {
     setAppId(appId);
   }, [appId, setAppId]);
