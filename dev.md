@@ -1,4 +1,4 @@
-## Premise
+## Premise test
 
 Since FastGPT is managed in the same way as monorepo, it is recommended to install ‘make’ first during development.
 
