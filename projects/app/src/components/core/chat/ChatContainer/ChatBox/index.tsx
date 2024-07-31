@@ -973,8 +973,12 @@ const ChatBox = ({
                       }}
                     >
                       <ResponseTags
-                        showTags={index !== chatRecords.length - 1 || !isChatting}
+                        showTags={
+                          (index !== chatRecords.length - 1 || !isChatting) &&
+                          userInfo?.username == 'root'
+                        }
                         historyItem={item}
+                        // showDetail={!shareId && !teamId && userInfo?.username == 'root'}
                       />
                       {/* custom feedback */}
                       {item.customFeedbacks && item.customFeedbacks.length > 0 && (
