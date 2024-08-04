@@ -109,12 +109,24 @@ const AppCard = ({
           </Button>
           {appDetail.permission.hasManagePer && (
             <Button
+              mr={3}
               size={['sm', 'md']}
               variant={'whitePrimary'}
               leftIcon={<MyIcon name={'common/settingLight'} w={'16px'} />}
               onClick={onOpenInfoEdit}
             >
               {t('common:common.Setting')}
+            </Button>
+          )}
+          {/* adam：增加打开团队标签模块按钮 */}
+          {appDetail.permission.hasManagePer && (
+            <Button
+              size={['sm', 'md']}
+              variant={'whitePrimary'}
+              leftIcon={<MyIcon name={'common/settingLight'} w={'16px'} />}
+              onClick={() => setTeamTagsSet((prev) => (prev ? undefined : appDetail))}
+            >
+              {t('common.Toggle Team Tags')}
             </Button>
           )}
           {appDetail.permission.isOwner && (

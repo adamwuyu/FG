@@ -19,6 +19,10 @@ import { getAIApi, openaiBaseUrl } from '../../../core/ai/config';
 import { createRootOrg } from '../../permission/org/controllers';
 import { refreshSourceAvatar } from '../../../common/file/image/controller';
 
+// adam
+import { MongoTeamTags } from './teamTagsSchema'; // 引入团队标签模型
+import { TeamTagSchema as TeamTagsSchemaType } from '@fastgpt/global/support/user/team/type.d'; // 引入类型定义
+
 async function getTeamMember(match: Record<string, any>): Promise<TeamTmbItemType> {
   const tmb = await MongoTeamMember.findOne(match).populate<{ team: TeamSchema }>('team').lean();
   if (!tmb) {
@@ -242,4 +246,27 @@ export async function updateTeam({
       await refreshSourceAvatar(avatar, team?.avatar, session);
     }
   });
+}
+
+/**
+ * adam: 获取团队标签
+ * @param {Object} params - 参数对象
+ * @param {string} params.teamId - 团队ID
+ * @returns {Promise<TeamTagsSchemaType[]>} - 返回团队标签列表
+ */
+export async function getTeamsTags({ teamId }: { teamId: string }): Promise<TeamTagsSchemaType[]> {
+  if (!teamId) {
+    throw new Error('teamId is required');
+  }
+
+  // 查询团队标签
+  console.log('\n\n\n', teamId);
+  const tags = await MongoTeamTags.find({ teamId }).exec();
+  return tags.map((tag) => ({
+    _id: tag._id, // Assuming _id is part of the tag
+    teamId: tag.teamId, // Assuming teamId is part of the tag
+    createTime: tag.createTime, // Assuming createTime is part of the tag
+    key: tag.key,
+    label: tag.label
+  }));
 }
