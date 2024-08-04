@@ -8,11 +8,11 @@ image:
   repository: ghcr.io/labring/fastgpt
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
-  tag: ""
+  tag: ''
 
 imagePullSecrets: []
-nameOverride: ""
-fullnameOverride: ""
+nameOverride: ''
+fullnameOverride: ''
 
 serviceAccount:
   # Specifies whether a service account should be created
@@ -23,7 +23,7 @@ serviceAccount:
   annotations: {}
   # The name of the service account to use.
   # If not set and create is true, a name is generated using the fullname template
-  name: ""
+  name: ''
 
 podAnnotations: {}
 podLabels: {}
@@ -48,7 +48,7 @@ service:
 
 ingress:
   enabled: false
-  className: ""
+  className: ''
   annotations:
     {}
     # kubernetes.io/ingress.class: nginx
@@ -117,13 +117,13 @@ mongodb:
   architecture: replicaset
   auth:
     rootUser: root
-    rootPassword: "123456"
+    rootPassword: 'IloveGPT!'
 
 postgresql:
   # -- Enable or disable the built-in PostgreSQL
   enabled: true
   image:
-#    registry: 172.11.0.6:30002
+    #    registry: 172.11.0.6:30002
     # -- The PostgreSQL image which include the pgvector extension. See also the source code from https://github.com/LinuxSuRen/pgvector-docker
     repository: linuxsuren/pgvector
     tag: v0.0.1
