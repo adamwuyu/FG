@@ -16,6 +16,7 @@ import { BucketNameEnum } from '@fastgpt/global/common/file/constants';
 import { getTmbInfoByTmbId } from '../../user/team/controller';
 import { CommonErrEnum } from '@fastgpt/global/common/error/code/common';
 import { MongoDatasetCollection } from '../../../core/dataset/collection/schema';
+import { MongoResourcePermission } from '../schema'; // 引入资源权限模型
 
 // Adam：visitor不能访问数据库
 export async function authDatasetByTmbId({
@@ -38,19 +39,33 @@ export async function authDatasetByTmbId({
       return Promise.reject(DatasetErrEnum.unAuthDataset);
     }
 
+    // adam：读取resource_permissions表，检查用户是否有权限
+    const resourcePermissions = await MongoResourcePermission.find({
+      resourceId: datasetId,
+      tmbId
+    }).exec();
+    var permissionLevel = 0;
+    if (resourcePermissions.length > 0) {
+      permissionLevel = resourcePermissions[0].permission;
+    }
+
     const isOwner =
-      role !== TeamMemberRoleEnum.visitor &&
-      (String(dataset.tmbId) === tmbId || role === TeamMemberRoleEnum.owner);
+      (role !== TeamMemberRoleEnum.visitor &&
+        (String(dataset.tmbId) === tmbId || role === TeamMemberRoleEnum.owner)) ||
+      permissionLevel >= 3;
     const canWrite =
       isOwner ||
-      (role !== TeamMemberRoleEnum.visitor && dataset.permission === PermissionTypeEnum.public);
+      (role !== TeamMemberRoleEnum.visitor && dataset.permission === PermissionTypeEnum.public) ||
+      permissionLevel >= 2;
 
     if (per === 'r') {
       if (
         role === TeamMemberRoleEnum.visitor ||
         (!isOwner && dataset.permission !== PermissionTypeEnum.public)
       ) {
-        return Promise.reject(DatasetErrEnum.unAuthDataset);
+        if (permissionLevel <= 1) {
+          return Promise.reject(DatasetErrEnum.unAuthDataset);
+        }
       }
     }
     if (per === 'w' && !canWrite) {
@@ -123,18 +138,35 @@ export async function authDatasetCollection({
       return Promise.reject(DatasetErrEnum.unAuthDatasetCollection);
     }
 
-    const isOwner = String(collection.tmbId) === tmbId || role === TeamMemberRoleEnum.owner;
+    // adam：读取resource_permissions表，检查用户是否有权限
+    const resourcePermissions = await MongoResourcePermission.find({
+      resourceId: collection.datasetId,
+      tmbId
+    }).exec();
+    var permissionLevel = 0;
+    if (resourcePermissions.length > 0) {
+      permissionLevel = resourcePermissions[0].permission;
+    }
+
+    const isOwner =
+      String(collection.tmbId) === tmbId ||
+      role === TeamMemberRoleEnum.owner ||
+      permissionLevel >= 3;
+
     const canWrite =
       isOwner ||
       (role !== TeamMemberRoleEnum.visitor &&
-        collection.datasetId.permission === PermissionTypeEnum.public);
+        collection.datasetId.permission === PermissionTypeEnum.public) ||
+      permissionLevel >= 2;
 
     if (per === 'r') {
       if (
         role === TeamMemberRoleEnum.visitor ||
         (!isOwner && collection.datasetId.permission !== PermissionTypeEnum.public)
       ) {
-        return Promise.reject(DatasetErrEnum.unAuthDatasetCollection);
+        if (permissionLevel < 1) {
+          return Promise.reject(DatasetErrEnum.unAuthDatasetCollection);
+        }
       }
     }
     if (per === 'w' && !canWrite) {
@@ -182,10 +214,12 @@ export async function authDatasetFile({
   ]);
 
   if (!file) {
+    console.log('\n\n3-1');
     return Promise.reject(CommonErrEnum.fileNotFound);
   }
 
   if (!collection) {
+    console.log('\n\n3-3');
     return Promise.reject(DatasetErrEnum.unAuthDatasetFile);
   }
 
@@ -205,6 +239,7 @@ export async function authDatasetFile({
       canWrite
     };
   } catch (error) {
+    console.log('\n\n3-3');
     return Promise.reject(DatasetErrEnum.unAuthDatasetFile);
   }
 }
