@@ -42,6 +42,7 @@ export async function mongoRPermission({
   // 添加资源权限条件
   if (resourcePermissions.length > 0) {
     const permissionConditions = resourcePermissions.map(
+      // @ts-ignore
       (resPerm: { resourceId: string; permission: PermissionTypeEnum }) => {
         return {
           _id: resPerm.resourceId
