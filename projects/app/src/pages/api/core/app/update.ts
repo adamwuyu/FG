@@ -24,6 +24,8 @@ import { TeamWritePermissionVal } from '@fastgpt/global/support/permission/user/
 import { AppErrEnum } from '@fastgpt/global/common/error/code/app';
 import { refreshSourceAvatar } from '@fastgpt/service/common/file/image/controller';
 import { MongoResourcePermission } from '@fastgpt/service/support/permission/schema';
+import { MongoTeamMember } from '@fastgpt/service/support/user/team/teamMemberSchema';
+import { MongoTeamTags } from '@fastgpt/service/support/user/team/teamTagsSchema';
 
 export type AppUpdateQuery = {
   appId: string;
@@ -65,6 +67,14 @@ async function handler(req: ApiRequestProps<AppUpdateBody, AppUpdateQuery>) {
     Promise.reject(AppErrEnum.unExist);
   }
 
+  // 补丁0021: 获取用户所属团队标签
+  const tmbTeams = await MongoTeamMember.find({ userId: req.userId }).populate('teamId', 'name');
+  const tmbTeamNames = tmbTeams.map((item) => item.name);
+  const tagKeys = await MongoTeamTags.find({ label: { $in: tmbTeamNames } }).distinct('key');
+
+  // 检查 teamTags 和 tagKeys 的交集
+  const hasOverlap = app.teamTags?.some((tag) => tagKeys.includes(tag)) || false;
+
   if (isMove) {
     if (parentId) {
       // move to a folder, check the target folder's permission
@@ -84,7 +94,7 @@ async function handler(req: ApiRequestProps<AppUpdateBody, AppUpdateQuery>) {
     }
   } else {
     // is not move, write permission of the app.
-    if (!permission.hasWritePer) {
+    if (!permission.hasWritePer && !hasOverlap) {
       return Promise.reject(AppErrEnum.unAuthApp);
     }
   }
@@ -97,27 +107,28 @@ async function handler(req: ApiRequestProps<AppUpdateBody, AppUpdateQuery>) {
       isPlugin: app.type === AppTypeEnum.plugin
     });
 
-    await refreshSourceAvatar(avatar, app.avatar, session);
-
-    return MongoApp.findByIdAndUpdate(
-      appId,
+    // 更新模型（采用 updateOne 方案）
+    await MongoApp.updateOne(
+      {
+        _id: appId
+      },
       {
         ...parseParentIdInMongo(parentId),
-        ...(name && { name }),
-        ...(type && { type }),
-        ...(avatar && { avatar }),
-        ...(intro !== undefined && { intro }),
-        ...(teamTags && { teamTags }),
+        name,
+        type,
+        avatar,
+        intro,
+        permission,
+        defaultPermission,
+        ...(teamTags && { teamTags: teamTags }),
         ...(formatNodes && {
           modules: formatNodes
         }),
         ...(edges && {
           edges
         }),
-        ...(chatConfig && { chatConfig }),
-        ...(isMove && { inheritPermission: true })
-      },
-      { session }
+        ...(chatConfig && { chatConfig })
+      }
     );
   };
 

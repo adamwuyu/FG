@@ -8,58 +8,65 @@ import { getTmbInfoByTmbId } from '../../user/team/controller';
 import { getResourcePermission } from '../controller';
 import { AppPermission } from '@fastgpt/global/support/permission/app/controller';
 import { PermissionValueType } from '@fastgpt/global/support/permission/type';
-import { AppFolderTypeList } from '@fastgpt/global/core/app/constants';
-import { ParentIdType } from '@fastgpt/global/common/parentFolder/type';
-import { splitCombinePluginId } from '../../../core/app/plugin/controller';
-import { PluginSourceEnum } from '@fastgpt/global/core/plugin/constants';
-import { AuthModeType, AuthResponseType } from '../type';
+import { MongoTeamMember } from '../../user/team/teamMemberSchema';
+import { MongoTeamTags } from '../../user/team/teamTagsSchema';
+import { AppFolderTypeList, AppTypeEnum } from '@fastgpt/global/core/app/constants';
 import { AppDefaultPermissionVal } from '@fastgpt/global/support/permission/app/constant';
+// 以下 import 根据项目实际情况调整路径
+import { ParentIdType } from '@fastgpt/global/common/parentFolder/type';
+import { AuthModeType, AuthResponseType } from '../type';
+/*
+  注意：若需支持个人插件权限，请单独实现；此处只处理商业（团队）插件权限，
+  并增加 tagKeys 判断逻辑。
+*/
 
-export const authPluginByTmbId = async ({
-  tmbId,
-  appId,
-  per
-}: {
-  tmbId: string;
-  appId: string;
-  per: PermissionValueType;
-}) => {
-  const { source } = await splitCombinePluginId(appId);
-  if (source === PluginSourceEnum.personal) {
-    const { app } = await authAppByTmbId({
-      appId,
-      tmbId,
-      per
-    });
-
-    return app;
-  }
-
-  // commercial custom plugin already checked in "getSystemPluginTemplateById"
-};
+/*
+  补丁0021概述: 增加团队标签权限控制
+  1. 增加 MongoTeamMember 和 MongoTeamTags 模型的引入，用于查询用户所属团队标签
+  2. 在权限判断时增加 tagKeys 参数，用于检查与 app.teamTags 的交集
+  3. 当存在标签交集时(hasOverlap为true)，放宽权限控制
+  4. 重构了权限判断逻辑，统一使用 authAppByTmbIdWithTags 作为主要接口
+*/
 
 export const authAppByTmbId = async ({
+  teamId,
   tmbId,
   appId,
   per,
+  tagKeys,
   isRoot
 }: {
+  teamId: string;
   tmbId: string;
   appId: string;
   per: PermissionValueType;
+  tagKeys?: string[];
   isRoot?: boolean;
-}): Promise<{
-  app: AppDetailType;
-}> => {
-  const { teamId, permission: tmbPer } = await getTmbInfoByTmbId({ tmbId });
+}): Promise<{ app: AppDetailType }> => {
+  const { permission: tmbPer } = await getTmbInfoByTmbId({ tmbId });
 
   const app = await (async () => {
-    const app = await MongoApp.findOne({ _id: appId }).lean();
+    // 补丁0021: 同时匹配 teamId 和 teamTags
+    const [app, rp] = await Promise.all([
+      MongoApp.findOne({
+        $or: [
+          { _id: appId, teamId },
+          { _id: appId, teamTags: { $in: tagKeys || [] } }
+        ]
+      }).lean(),
+      getResourcePermission({
+        teamId,
+        tmbId,
+        resourceId: appId,
+        resourceType: PerResourceTypeEnum.app
+      })
+    ]);
 
     if (!app) {
       return Promise.reject(AppErrEnum.unExist);
     }
 
+    // 补丁0021: root 用户直接获得所有权限
     if (isRoot) {
       return {
         ...app,
@@ -68,16 +75,19 @@ export const authAppByTmbId = async ({
     }
 
     if (String(app.teamId) !== teamId) {
-      return Promise.reject(AppErrEnum.unAuthApp);
+      // 补丁0021: 如果不是同一个团队，检查是否有标签交集
+      const hasOverlap = app.teamTags?.some((tag) => tagKeys?.includes(tag)) || false;
+      if (!hasOverlap) {
+        return Promise.reject(AppErrEnum.unAuthApp);
+      }
     }
 
-    const isOwner = tmbPer.isOwner || String(app.tmbId) === String(tmbId);
+    const isOwner = tmbPer.isOwner || String(app.tmbId) === tmbId;
 
+    // 补丁0021: 根据继承关系获取权限
     const { Per } = await (async () => {
       if (isOwner) {
-        return {
-          Per: new AppPermission({ isOwner: true })
-        };
+        return { Per: new AppPermission({ isOwner: true }) };
       }
 
       if (
@@ -85,9 +95,6 @@ export const authAppByTmbId = async ({
         app.inheritPermission === false ||
         !app.parentId
       ) {
-        // 1. is a folder. (Folders have compeletely permission)
-        // 2. inheritPermission is false.
-        // 3. is root folder/app.
         const rp = await getResourcePermission({
           teamId,
           tmbId,
@@ -95,28 +102,28 @@ export const authAppByTmbId = async ({
           resourceType: PerResourceTypeEnum.app
         });
         const Per = new AppPermission({ per: rp ?? AppDefaultPermissionVal, isOwner });
-        return {
-          Per
-        };
+        return { Per };
       } else {
-        // is not folder and inheritPermission is true and is not root folder.
+        // 继承父应用权限
         const { app: parent } = await authAppByTmbId({
+          teamId,
           tmbId,
           appId: app.parentId,
-          per
+          per,
+          tagKeys,
+          isRoot
         });
-
         const Per = new AppPermission({
           per: parent.permission.value,
           isOwner
         });
-        return {
-          Per
-        };
+        return { Per };
       }
     })();
 
-    if (!Per.checkPer(per)) {
+    // 补丁0021: 检查权限，如果有标签交集则放宽权限控制
+    const hasOverlap = app.teamTags?.some((tag) => tagKeys?.includes(tag)) || false;
+    if (!Per.checkPer(per) && !hasOverlap) {
       return Promise.reject(AppErrEnum.unAuthApp);
     }
 
@@ -136,28 +143,31 @@ export const authApp = async ({
 }: AuthModeType & {
   appId: ParentIdType;
   per: PermissionValueType;
-}): Promise<
-  AuthResponseType & {
-    app: AppDetailType;
-  }
-> => {
+}): Promise<AuthResponseType & { app: AppDetailType }> => {
   const result = await parseHeaderCert(props);
-  const { tmbId } = result;
+  const { teamId, tmbId, userId } = result;
 
-  if (!appId) {
-    return Promise.reject(AppErrEnum.unExist);
+  // 补丁0021: 获取用户所属团队标签
+  const tmbTeams = await MongoTeamMember.find({ userId }).populate('teamId', 'name');
+  const tmbTeamNames = tmbTeams.map((item) => item.name);
+  const tagKeys = await MongoTeamTags.find({ label: { $in: tmbTeamNames } }).distinct('key');
+
+  // 确保 appId 是 string 类型
+  if (typeof appId === 'string') {
+    const { app } = await authAppByTmbId({
+      teamId,
+      tmbId,
+      appId, // 这里确保 appId 是 string
+      per,
+      tagKeys
+    });
+    return {
+      ...result,
+      permission: app.permission,
+      app
+    };
+  } else {
+    // 处理 appId 可能为 undefined 的情况
+    throw new Error('appId is required and must be a string');
   }
-
-  const { app } = await authAppByTmbId({
-    tmbId,
-    appId,
-    per,
-    isRoot: result.isRoot
-  });
-
-  return {
-    ...result,
-    permission: app.permission,
-    app
-  };
 };

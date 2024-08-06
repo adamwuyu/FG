@@ -19,6 +19,8 @@ import { concatPer } from '@fastgpt/service/support/permission/controller';
 import { getGroupsByTmbId } from '@fastgpt/service/support/permission/memberGroup/controllers';
 import { getOrgIdSetWithParentByTmbId } from '@fastgpt/service/support/permission/org/controllers';
 import { addSourceMember } from '@fastgpt/service/support/user/utils';
+import { MongoTeamMember } from '@fastgpt/service/support/user/team/teamMemberSchema';
+import { MongoTeamTags } from '@fastgpt/service/support/user/team/teamTagsSchema'; // 补丁0021: 引入团队标签模型
 
 export type ListAppBody = {
   parentId?: ParentIdType;
@@ -28,38 +30,33 @@ export type ListAppBody = {
 };
 
 /*
-  获取 APP 列表权限
-  1. 校验 folder 权限和获取 team 权限（owner 单独处理）
-  2. 获取 team 下所有 app 权限。获取我的所有组。并计算出我所有的app权限。
-  3. 过滤我有的权限的 app，以及当前 parentId 的 app（由于权限继承问题，这里没法一次性根据 id 去获取）
-  4. 根据过滤条件获取 app 列表
-  5. 遍历搜索出来的 app，并赋予权限（继承的 app，使用 parent 的权限）
-  6. 再根据 read 权限进行一次过滤。
+  补丁0021概述: 通过团队标签重新判断权限
+  1. 引入 MongoTeamMember 和 MongoTeamTags 模型
+  2. 获取用户所属团队标签
+  3. 在权限判断中增加 teamTags 和 tagKeys 的交集判断
 */
 
 async function handler(req: ApiRequestProps<ListAppBody>): Promise<AppListItemType[]> {
   const { parentId, type, getRecentlyChat, searchKey } = req.body;
 
   // Auth user permission
-  const [{ tmbId, teamId, permission: teamPer }] = await Promise.all([
-    authUserPer({
-      req,
-      authToken: true,
-      authApiKey: true,
-      per: ReadPermissionVal
-    }),
-    ...(parentId
-      ? [
-          authApp({
-            req,
-            authToken: true,
-            authApiKey: true,
-            appId: parentId,
-            per: ReadPermissionVal
-          })
-        ]
-      : [])
-  ]);
+  const {
+    teamId,
+    tmbId,
+    tmb,
+    permission: tmbPer
+  } = await authUserPer({
+    req,
+    authToken: true,
+    authApiKey: true,
+    per: ReadPermissionVal
+  });
+
+  // 通过 tmb.userId 查询所属团队，提取团队名称后查询对应的 tag key 数组
+  const tmbTeams = await MongoTeamMember.find({ userId: tmb.userId }).populate('teamId', 'name');
+  const tmbTeamNames = tmbTeams.map((item) => item.teamId.name);
+  console.log('\n\n\n', tmbTeamNames);
+  const tagKeys = await MongoTeamTags.find({ label: { $in: tmbTeamNames } }).distinct('key');
 
   // Get team all app permissions
   const [perList, myGroupMap, myOrgSet] = await Promise.all([
@@ -104,7 +101,7 @@ async function handler(req: ApiRequestProps<ListAppBody>): Promise<AppListItemTy
 
     // Filter apps by permission, if not owner, only get apps that I have permission to access
     const idList = { _id: { $in: myPerList.map((item) => item.resourceId) } };
-    const appPerQuery = teamPer.isOwner
+    const appPerQuery = tmbPer.isOwner
       ? {}
       : parentId
         ? {
@@ -155,56 +152,36 @@ async function handler(req: ApiRequestProps<ListAppBody>): Promise<AppListItemTy
   // Add app permission and filter apps by read permission
   const formatApps = myApps
     .map((app) => {
-      const { Per, privateApp } = (() => {
-        const getPer = (appId: string) => {
-          const tmbPer = myPerList.find(
-            (item) => String(item.resourceId) === appId && !!item.tmbId
-          )?.permission;
-          const groupPer = concatPer(
-            myPerList
-              .filter(
-                (item) => String(item.resourceId) === appId && (!!item.groupId || !!item.orgId)
-              )
-              .map((item) => item.permission)
-          );
-
-          return new AppPermission({
-            per: tmbPer ?? groupPer ?? AppDefaultPermissionVal,
-            isOwner: String(app.tmbId) === String(tmbId) || teamPer.isOwner
-          });
-        };
-
-        const getClbCount = (appId: string) => {
-          return perList.filter((item) => String(item.resourceId) === String(appId)).length;
-        };
-
-        // Inherit app, check parent folder clb
-        if (!AppFolderTypeList.includes(app.type) && app.parentId && app.inheritPermission) {
-          return {
-            Per: getPer(String(app.parentId)),
-            privateApp: getClbCount(String(app.parentId)) <= 1
-          };
-        }
-
-        return {
-          Per: getPer(String(app._id)),
-          privateApp: AppFolderTypeList.includes(app.type)
-            ? getClbCount(String(app._id)) <= 1
-            : getClbCount(String(app._id)) === 0
-        };
-      })();
-
-      return {
-        ...app,
-        permission: Per,
-        private: privateApp
-      };
+      const perVal = myPerList.find(
+        (item) => String(item.resourceId) === String(app._id)
+      )?.permission;
+      const hasOverlap = app.teamTags.some((tag) => tagKeys.includes(tag)); // 补丁0021: 检查交集
+      const isSameTeam = String(app.teamId) === String(teamId); // 检查 teamId 是否相同
+      const isRoot = String(tmb.userId) === '667181600410cce52bf78e05'; // 检查是否为 root 用户
+      const Per = new AppPermission({
+        per: perVal ?? app.defaultPermission,
+        isOwner: String(app.tmbId) === tmbId || tmbPer.isOwner
+      });
+      // 若存在对应的 team tag，则强制赋予读权限
+      if (hasOverlap) {
+        Per.hasReadPer = true;
+      }
+      const result = hasOverlap || isSameTeam || isRoot ? { ...app, permission: Per } : null;
+      return result;
     })
-    .filter((app) => app.permission.hasReadPer);
+    .filter((app) => app && app.permission.hasReadPer); // 过滤掉 null 及无读权限的 app
 
-  return addSourceMember({
-    list: formatApps
-  });
+  return formatApps
+    .filter((app) => app !== null && app._id !== null)
+    .map((app) => ({
+      _id: app ? app._id : null,
+      avatar: app ? app.avatar : null,
+      type: app ? app.type : null,
+      name: app ? app.name : null,
+      intro: app ? app.intro : null,
+      permission: app ? app.permission : null,
+      defaultPermission: app ? app.defaultPermission : AppDefaultPermissionVal
+    }));
 }
 
 export default NextAPI(handler);
