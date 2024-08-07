@@ -33,8 +33,8 @@ const AppDetail = () => {
     // @ts-ignore
     (userInfo?.team.role === 'owner' || userInfo?.team.role === 'editor');
 
-  const canEverything =
-    userInfo?.team.teamId === appDetail.teamId && userInfo?.team.role === 'owner';
+  // root用户，并且是默认组的owner具有所有权限（root是所有组的owner）
+  const canEverything = userInfo?.username == 'root' && userInfo?.team.role === 'owner';
 
   useEffect(() => {
     setSource('test');
