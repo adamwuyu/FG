@@ -24,7 +24,9 @@ export async function authOutLinkCrud({
   const { tmbId, teamId } = result;
 
   const { app, outLink } = await (async () => {
-    const outLink = await MongoOutLink.findOne({ _id: outLinkId, teamId });
+    // const outLink = await MongoOutLink.findOne({ _id: outLinkId, teamId });
+    // adam: 允许跨组删除外链
+    const outLink = await MongoOutLink.findOne({ _id: outLinkId });
     if (!outLink) {
       return Promise.reject(OutLinkErrEnum.unExist);
     }
