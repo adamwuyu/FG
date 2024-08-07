@@ -22,6 +22,7 @@ async function handler(
 
   // tmp auth
   const { teamId } = await authChatCrud({ req, authToken: true, ...req.body });
+  // adam: 不再按组筛选，而按app tags确定权限
   const app = await MongoApp.findOne({ _id: appId, teamId });
   if (!app) {
     return Promise.reject(AppErrEnum.unAuthApp);
