@@ -54,8 +54,9 @@ async function handler(req: ApiRequestProps<ListAppBody>): Promise<AppListItemTy
 
   // 通过 tmb.userId 查询所属团队，提取团队名称后查询对应的 tag key 数组
   const tmbTeams = await MongoTeamMember.find({ userId: tmb.userId }).populate('teamId', 'name');
-  const tmbTeamNames = tmbTeams.map((item) => item.teamId.name);
-  console.log('\n\n\n', tmbTeamNames);
+  const tmbTeamNames = tmbTeams.map((item) => item.name);
+  // tmbTeamNames的结构是：['组1','组2']
+  // 查询MongoTeamTags中的label为['组1','组2']的记录，并提取其中的key组成新数组['key1','key2']
   const tagKeys = await MongoTeamTags.find({ label: { $in: tmbTeamNames } }).distinct('key');
 
   // Get team all app permissions

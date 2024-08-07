@@ -54,3 +54,5 @@ projects/app/.next_org/
 
 scripts/openapi/
 patches-v4/
+
+storageState.json

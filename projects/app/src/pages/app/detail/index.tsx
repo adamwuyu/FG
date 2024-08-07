@@ -5,6 +5,7 @@ import Loading from '@fastgpt/web/components/common/MyLoading';
 import { serviceSideProps } from '@fastgpt/web/common/system/nextjs';
 import NextHead from '@/components/common/NextHead';
 import { useContextSelector } from 'use-context-selector';
+import { useUserStore } from '@/web/support/user/useUserStore';
 import AppContextProvider, { AppContext } from '@/pageComponents/app/detail/context';
 import { AppTypeEnum } from '@fastgpt/global/core/app/constants';
 import { useChatStore } from '@/web/core/chat/context/useChatStore';
@@ -23,13 +24,27 @@ const Plugin = dynamic(() => import('@/pageComponents/app/detail/Plugin'), {
 });
 
 const AppDetail = () => {
+  const { userInfo } = useUserStore();
   const { setAppId, setSource } = useChatStore();
   const appDetail = useContextSelector(AppContext, (e) => e.appDetail);
+  // 可以编辑日志的权限：app属于用户的默认组，且用户角色为editor或owner
+  const canEditLogs =
+    userInfo?.team.teamId === appDetail.teamId &&
+    // @ts-ignore
+    (userInfo?.team.role === 'owner' || userInfo?.team.role === 'editor');
+
+  const canEverything =
+    userInfo?.team.teamId === appDetail.teamId && userInfo?.team.role === 'owner';
 
   useEffect(() => {
     setSource('test');
     appDetail._id && setAppId(appDetail._id);
   }, [appDetail._id, setSource, setAppId]);
+
+  if (!canEditLogs && !canEverything) {
+    // return empty component
+    return () => {};
+  }
 
   return (
     <>
