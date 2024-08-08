@@ -170,6 +170,11 @@ async function handler(req: ApiRequestProps<ListAppBody>): Promise<AppListItemTy
       if (hasOverlap) {
         Per.hasReadPer = true;
       }
+      // editor默认组，有hasWritePer
+      // @ts-ignore
+      if (isSameTeam && tmb.role === 'editor') {
+        Per.hasWritePer = true;
+      }
       const result = hasOverlap || isSameTeam || isRoot ? { ...app, permission: Per } : null;
       return result;
     })
