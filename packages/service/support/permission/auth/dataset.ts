@@ -33,7 +33,8 @@ export async function authDatasetByTmbId({
   const { role } = await getTmbInfoByTmbId({ tmbId });
 
   const { dataset, isOwner, canWrite } = await (async () => {
-    const dataset = await MongoDataset.findOne({ _id: datasetId, teamId }).lean();
+    // adam: 改为不再按照tmbId查找
+    const dataset = await MongoDataset.findOne({ _id: datasetId }).lean();
 
     if (!dataset) {
       return Promise.reject(DatasetErrEnum.unAuthDataset);

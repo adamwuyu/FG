@@ -24,9 +24,12 @@ export async function mongoRPermission({
   tmbId: string;
   permission: Permission;
 }): Promise<Object> {
-  const hexTeamId = new mongoose.Types.ObjectId(teamId); // 将 teamId 转换为 Hex 类型
-  const hexTmbIdId = new mongoose.Types.ObjectId(tmbId); // 将 teamId 转换为 Hex 类型
-  const resourcePermissions = await MongoResourcePermission.find({ teamId, tmbId }).exec();
+  const teamIdObject = new mongoose.Types.ObjectId(teamId); // 将 teamId 转换为 Hex 类型
+  const tmbIdObject = new mongoose.Types.ObjectId(tmbId); // 将 teamId 转换为 Hex 类型
+  const resourcePermissions = await MongoResourcePermission.find({
+    teamId: teamIdObject,
+    tmbId: tmbIdObject
+  }).exec();
 
   if (permission.isOwner) {
     return {
@@ -35,8 +38,8 @@ export async function mongoRPermission({
   }
   // 构建查询条件
   const queryConditions: any = {
-    teamId,
-    $or: [{ permission: PermissionTypeEnum.public }, { tmbId }]
+    teamId: teamIdObject,
+    $or: [{ permission: PermissionTypeEnum.public }, { tmbId: tmbIdObject }]
   };
 
   // 添加资源权限条件

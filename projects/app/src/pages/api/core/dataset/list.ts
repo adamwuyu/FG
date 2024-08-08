@@ -129,9 +129,17 @@ async function handler(req: NextApiRequest, res: NextApiResponse<any>) {
   }
 
   const queryConditions = {
-    ...(await mongoRPermission({ teamId, tmbId, permission: teamPer })),
-    ...(parentId !== undefined && { parentId: parentId || null }),
-    ...(type && { type })
+    $or: [
+      {
+        ...(await mongoRPermission({ teamId, tmbId, permission: teamPer })),
+        ...(parentId !== undefined && { parentId: parentId || null }),
+        ...(type && { type })
+      },
+      {
+        ...(parentId !== undefined && { parentId: parentId || null }),
+        ...{ type: 'folder' }
+      }
+    ]
   };
   const myDatasets = await MongoDataset.find(queryConditions).sort({ updateTime: -1 }).lean();
 
