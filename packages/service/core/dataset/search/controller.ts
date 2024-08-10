@@ -366,7 +366,8 @@ export async function searchDatasetData(
     const [dataList, collections] = await Promise.all([
       MongoDatasetData.find(
         {
-          teamId,
+          //adam: 危险操作-为了能跨组搜索dataset，暂不搜索teamId
+          // teamId,
           datasetId: { $in: datasetIds },
           collectionId: { $in: collectionIdList },
           'indexes.dataId': { $in: results.map((item) => item.id?.trim()) }
@@ -449,7 +450,8 @@ export async function searchDatasetData(
             [
               {
                 $match: {
-                  teamId: new Types.ObjectId(teamId),
+                  //adam: 危险操作-为了能跨组搜索dataset，暂不搜索teamId
+                  // teamId: new Types.ObjectId(teamId),
                   datasetId: new Types.ObjectId(id),
                   $text: { $search: jiebaSplit({ text: query }) },
                   ...(filterCollectionIdList
