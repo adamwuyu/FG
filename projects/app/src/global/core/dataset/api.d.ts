@@ -50,6 +50,19 @@ export type InsertOneDatasetDataProps = PushDatasetDataChunkProps & {
   reqTmbId?: string;
 };
 
+/* ================= update: Adam新增 ===================== */
+export type UpdateDatasetDataProps = {
+  id: string;
+  q?: string; // embedding content
+  a?: string; // bonus content
+  reqToken?: string;
+  reqTeamId?: string;
+  reqTmbId?: string;
+  indexes: (Omit<DatasetDataIndexItemType, 'dataId'> & {
+    dataId?: string; // pg data id
+  })[];
+};
+
 export type GetTrainingQueueProps = {
   vectorModel: string;
   agentModel: string;
