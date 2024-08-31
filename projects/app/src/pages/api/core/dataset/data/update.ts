@@ -17,7 +17,7 @@ async function handler(req: ApiRequestProps<UpdateDatasetDataProps>) {
     teamId,
     tmbId
   } = reqToken === 'ruCkE2XiI512H4OMbfIjhQRdlqqiBRPHumGmPppPj0VJvwfdS7RzZB'
-    ? { collection: {}, teamId: reqTeamId, tmbId: reqTmbId }
+    ? { collection: {}, teamId: reqTeamId ?? '', tmbId: reqTmbId ?? '' }
     : await authDatasetData({
         req,
         authToken: true,
@@ -32,7 +32,7 @@ async function handler(req: ApiRequestProps<UpdateDatasetDataProps>) {
       q,
       a,
       indexes,
-      model: vectorModel
+      model: vectorModel ?? ''
     });
 
     pushGenerateVectorUsage({
@@ -46,6 +46,8 @@ async function handler(req: ApiRequestProps<UpdateDatasetDataProps>) {
     //   ...(forbid !== undefined && { forbid })
     // });
   }
+  // Adam: 为什么新版本中不需要输出了？
+  // jsonRes(res);
 }
 
 export default NextAPI(handler);
