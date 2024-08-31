@@ -26,6 +26,11 @@ import { AuthModeType, AuthResponseType } from '../type';
   3. 当存在标签交集时(hasOverlap为true)，放宽权限控制
   4. 重构了权限判断逻辑，统一使用 authAppByTmbIdWithTags 作为主要接口
 */
+type AuthAppReturn = {
+  app: AppDetailType & {
+    permission: AppPermission;
+  };
+};
 
 export const authAppByTmbId = async ({
   teamId,
@@ -43,7 +48,7 @@ export const authAppByTmbId = async ({
   isRoot?: boolean;
   tagKeys?: string[]; // 可选参数类型为字符串数组
   userId?: string; // 可选参数用户ID用于判断是否是root用户，不容易获取role或者username时，用userId
-}) => {
+}): Promise<AuthAppReturn> => {
   const { permission: tmbPer } = await getTmbInfoByTmbId({ tmbId });
 
   const app = await (async () => {

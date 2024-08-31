@@ -18,7 +18,8 @@ import { WritePermissionVal } from '@fastgpt/global/support/permission/constant'
 import { CommonErrEnum } from '@fastgpt/global/common/error/code/common';
 
 async function handler(req: NextApiRequest) {
-  const { collectionId, q, a, indexes } = req.body as InsertOneDatasetDataProps;
+  const { collectionId, q, a, indexes, reqToken, reqTeamId, reqTmbId } =
+    req.body as InsertOneDatasetDataProps;
 
   if (!q) {
     Promise.reject(CommonErrEnum.missingParams);
@@ -37,10 +38,11 @@ async function handler(req: NextApiRequest) {
     per: WritePermissionVal
   });
 
-  await checkDatasetLimit({
-    teamId,
-    insertLen: 1
-  });
+  // adam：不再检查是否超过了知识库容量
+  // await checkDatasetLimit({
+  //   teamId,
+  //   insertLen: 1
+  // });
 
   // auth collection and get dataset
   const [

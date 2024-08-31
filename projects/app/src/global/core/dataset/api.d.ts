@@ -45,6 +45,9 @@ export type CreateCollectionResponse = Promise<{
 /* ================= data ===================== */
 export type InsertOneDatasetDataProps = PushDatasetDataChunkProps & {
   collectionId: string;
+  reqToken?: string;
+  reqTeamId?: string;
+  reqTmbId?: string;
 };
 
 export type GetTrainingQueueProps = {

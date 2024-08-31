@@ -597,6 +597,18 @@ export const workflowSystemVariables: EditorVariablePickerType[] = [
     label: i18nT('common:core.module.http.Current time'),
     required: true,
     valueType: WorkflowIOValueTypeEnum.string
+  },
+  {
+    key: 'teamId',
+    label: 'teamId',
+    required: true,
+    valueType: WorkflowIOValueTypeEnum.string
+  },
+  {
+    key: 'tmbId',
+    label: 'tmbId',
+    required: true,
+    valueType: WorkflowIOValueTypeEnum.string
   }
 ];
 

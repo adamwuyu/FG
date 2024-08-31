@@ -129,6 +129,8 @@ export async function dispatchWorkFlow(data: Props): Promise<DispatchFlowRespons
     variables = {},
     timezone,
     externalProvider,
+    teamId,
+    tmbId,
     stream = false,
     ...props
   } = data;
@@ -558,6 +560,8 @@ export async function dispatchWorkFlow(data: Props): Promise<DispatchFlowRespons
       histories,
       timezone,
       externalProvider,
+      teamId,
+      tmbId,
       stream,
       node,
       runtimeNodes,
@@ -708,6 +712,8 @@ export async function dispatchWorkFlow(data: Props): Promise<DispatchFlowRespons
 /* get system variable */
 const getSystemVariable = ({
   timezone,
+  teamId,
+  tmbId,
   runningAppInfo,
   chatId,
   responseChatItemId,
@@ -728,7 +734,10 @@ const getSystemVariable = ({
     chatId,
     responseChatItemId,
     histories,
-    cTime: getSystemTime(timezone)
+    cTime: getSystemTime(timezone),
+    // adam: 为了能在流程中使用teamId，tmbId，所以增加这两个全局变量
+    teamId,
+    tmbId
   };
 };
 

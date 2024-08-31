@@ -35,6 +35,8 @@ export type ChatDispatchProps = {
   mode: 'test' | 'chat' | 'debug';
   timezone: string;
   externalProvider: ExternalProviderType;
+  teamId: string;
+  tmbId: string;
 
   runningAppInfo: {
     id: string; // May be the id of the system plug-in (cannot be used directly to look up the table)
@@ -74,6 +76,8 @@ export type SystemVariablesType = {
   responseChatItemId?: string;
   histories: ChatItemType[];
   cTime: string;
+  teamId: string;
+  tmbId: string;
 };
 
 /* node props */
