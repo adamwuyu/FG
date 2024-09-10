@@ -135,6 +135,8 @@ const SliderApps = ({ apps, activeAppId }: { apps: AppListItemType[]; activeAppI
       )}
 
       <Box flex={'1 0 0'} px={4} h={0} overflow={'overlay'}>
+        {/* Adam：学艺不精，不知道怎么重置表单，导致当前app会按前一个应用 */}
+        {/* 的必选输入项进行检查，而导致错误，暂时改为传统链接 */}
         {apps.map((item) => (
           <Flex
             key={item._id}
@@ -145,6 +147,8 @@ const SliderApps = ({ apps, activeAppId }: { apps: AppListItemType[]; activeAppI
             borderRadius={'md'}
             alignItems={'center'}
             fontSize={'sm'}
+            as="a"
+            href={`?chatId=&appId=${item._id}`}
             {...(item._id === activeAppId
               ? {
                   bg: 'white',
@@ -154,12 +158,12 @@ const SliderApps = ({ apps, activeAppId }: { apps: AppListItemType[]; activeAppI
               : {
                   _hover: {
                     bg: 'myGray.200'
-                  },
-                  onClick: () => onChangeApp(item._id)
+                  }
+                  // onClick: () => onChangeApp(item._id)
                 })}
           >
             <Avatar src={item.avatar} w={'1.5rem'} borderRadius={'md'} />
-            <Box ml={2} className={'textEllipsis'}>
+            <Box ml={2} className={'textEllipsis'} style={{ color: '#101010' }}>
               {item.name}
             </Box>
           </Flex>
