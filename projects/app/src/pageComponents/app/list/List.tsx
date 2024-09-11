@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react';
-import { Box, Grid, Flex, IconButton, HStack } from '@chakra-ui/react';
+import { Box, Grid, Flex, IconButton, HStack, Image } from '@chakra-ui/react';
 import { useRouter } from 'next/router';
 import { delAppById, putAppById, resumeInheritPer, changeOwner } from '@/web/core/app/api';
 import { useConfirm } from '@fastgpt/web/hooks/useConfirm';
@@ -165,6 +165,13 @@ const ListItem = () => {
                 position={'relative'}
                 display={'flex'}
                 flexDirection={'column'}
+                bgImage={
+                  app.type === 'folder'
+                    ? `url('https://i.superoceansh.com/imgs/folder.jpg')`
+                    : `url('https://i.superoceansh.com/imgs/${app.name}.jpg')`
+                } // 仅在 app.type 为 folder 时添加背景图
+                bgSize="cover" // 背景图覆盖整个区域
+                bgPosition="center" // 背景图居中
                 _hover={{
                   borderColor: 'primary.300',
                   boxShadow: '1.5',
