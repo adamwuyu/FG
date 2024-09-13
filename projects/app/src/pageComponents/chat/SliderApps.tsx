@@ -164,7 +164,7 @@ const SliderApps = ({ apps, activeAppId }: { apps: AppListItemType[]; activeAppI
           >
             <Avatar src={item.avatar} w={'1.5rem'} borderRadius={'md'} />
             <Box ml={2} className={'textEllipsis'} style={{ color: '#101010' }}>
-              {item.name}-{item.type}
+              {item.name}
             </Box>
           </Flex>
         ))}
