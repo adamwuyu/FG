@@ -48,22 +48,6 @@ export type InsertOneDatasetDataProps = PushDatasetDataChunkProps & {
   reqToken?: string;
   reqTeamId?: string;
   reqTmbId?: string;
-  subject?: string;
-  name?: string;
-  contact?: string;
-  gender?: string;
-  age?: string;
-  target?: string;
-  charater?: string;
-  yuansheng?: string;
-  mobile?: string;
-  milestones?: string;
-  qinzi?: string;
-  education?: string;
-  social?: string;
-  work?: string;
-  disease?: string;
-  additional?: string;
 };
 
 /* ================= update: Adam新增 ===================== */
@@ -74,22 +58,6 @@ export type UpdateDatasetDataProps = {
   reqToken?: string;
   reqTeamId?: string;
   reqTmbId?: string;
-  subject?: string;
-  name?: string;
-  contact?: string;
-  gender?: string;
-  age?: string;
-  target?: string;
-  charater?: string;
-  yuansheng?: string;
-  mobile?: string;
-  milestones?: string;
-  qinzi?: string;
-  education?: string;
-  social?: string;
-  work?: string;
-  disease?: string;
-  additional?: string;
   indexes: (Omit<DatasetDataIndexItemType, 'dataId'> & {
     dataId?: string; // pg data id
   })[];
