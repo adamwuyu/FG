@@ -16,6 +16,7 @@ export function useSticky(props?: { threshold?: number }) {
     parentRef.current?.addEventListener('scroll', cb);
 
     return () => {
+      // eslint-disable-next-line react-hooks/exhaustive-deps
       parentRef.current?.removeEventListener('scroll', cb);
     };
   }, [threshold]);

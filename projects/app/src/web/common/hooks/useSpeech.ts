@@ -177,6 +177,7 @@ export const useSpeech = (props?: OutLinkChatAuthProps & { appId?: string }) => 
         mediaStream.getTracks().forEach((track) => track.stop());
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // listen minuted. over 60 seconds, stop speak
