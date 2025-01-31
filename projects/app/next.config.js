@@ -44,6 +44,16 @@ const nextConfig = {
       config.externals = [];
     }
 
+    if (!isServer) {
+      config.resolve = {
+        ...config.resolve,
+        fallback: {
+          ...config.resolve.fallback,
+          fs: false // 如果不需要 fs 模块，可以将其设置为 false
+        }
+      };
+    }
+
     if (isServer) {
       if (nextRuntime === 'nodejs') {
         const oldEntry = config.entry;
