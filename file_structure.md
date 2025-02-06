@@ -2271,6 +2271,10 @@
 │   │   │   │   │   │   ├── Points.tsx
 │   │   │   │   │   │   └── Standard.tsx
 │   │   │   │   │   └── index.tsx
+│   │   │   │   ├── register
+│   │   │   │   │   ├── index.tsx
+│   │   │   │   │   ├── components
+│   │   │   │   │   │   └── RegisterForm.tsx
 │   │   │   │   └── tools
 │   │   │   │       └── index.tsx
 │   │   │   ├── service
