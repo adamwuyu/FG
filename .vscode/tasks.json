@@ -1,0 +1,12 @@
+{
+  // See https://go.microsoft.com/fwlink/?LinkId=733558
+  // for the documentation about the tasks.json format
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "start app",
+      "type": "shell",
+      "command": "echo 'cd /Users/adam/Sites/FastGPT/projects/app;nvm use v18.18.2;conda activate lightrag;pnpm dev'"
+    }
+  ]
+}
