@@ -44,8 +44,14 @@ export const useI18nLng = () => {
 
     await i18n?.changeLanguage?.(lang);
 
-    if (!i18n.hasResourceBundle(lang, 'common') && prevLang !== lang) {
-      window?.location?.reload?.();
+    if (i18n && typeof i18n.hasResourceBundle === 'function') {
+      if (!i18n.hasResourceBundle(lang, 'common') && prevLang !== lang) {
+        window?.location?.reload?.();
+      }
+    } else {
+      if (prevLang !== lang) {
+        window?.location?.reload?.();
+      }
     }
   };
 
