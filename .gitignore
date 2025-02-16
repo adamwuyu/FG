@@ -46,3 +46,4 @@ files/helm/fastgpt/charts/*.tgz
 tmp/
 
 scripts/openapi/
+patches-v4/
