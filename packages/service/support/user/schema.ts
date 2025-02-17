@@ -23,10 +23,7 @@ const UserSchema = new Schema({
   },
   password: {
     type: String,
-    required: true,
-    set: (val: string) => hashStr(val),
-    get: (val: string) => hashStr(val),
-    select: false
+    required: true
   },
   createTime: {
     type: Date,

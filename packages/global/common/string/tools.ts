@@ -10,6 +10,8 @@ export function strIsLink(str?: string) {
 
 /* hash string */
 export const hashStr = (str: string) => {
+  // console.log('\n\n\nstr=', str);
+  return str;
   return crypto.createHash('sha256').update(str).digest('hex');
 };
 
