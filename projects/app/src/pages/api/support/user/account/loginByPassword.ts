@@ -32,22 +32,6 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
     return Promise.reject('Invalid account!');
   }
 
-  /* 疑问：mongo数据库的users表中有记录：{
-  "_id": {
-    "$oid": "67b1312ad9d41c2d4f2b5ce0"
-  },
-  "status": "active",
-  "username": "root",
-  "password": "aaaaaa",
-  "promotionRate": 15,
-  "timezone": "Asia/Shanghai",
-  "createTime": {
-    "$date": "2025-02-16T00:28:26.059Z"
-  },
-  "__v": 0
-}
-  为什么username=root, password=aaaaaa时，这里会查不到？findOne的核心逻辑是什么？在哪儿定义的
-  */
   const user = await MongoUser.findOne({
     username,
     password
