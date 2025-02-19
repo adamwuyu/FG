@@ -13,30 +13,37 @@ import { ApiRequestProps } from '../../../type/next';
 /* auth user role  */
 export async function authUserPer(props: AuthModeType): Promise<
   AuthResponseType<TeamPermission> & {
+    teamPer: TeamPermission;
     tmb: TeamTmbItemType;
+    [Symbol.iterator](): IterableIterator<any>;
   }
 > {
   const result = await parseHeaderCert(props);
   const tmb = await getTmbInfoByTmbId({ tmbId: result.tmbId });
 
+  let teamPermission: TeamPermission;
   if (result.isRoot) {
-    return {
-      ...result,
-      permission: new TeamPermission({
-        isOwner: true
-      }),
-      tmb
-    };
-  }
-  if (!tmb.permission.checkPer(props.per ?? NullPermission)) {
-    return Promise.reject(TeamErrEnum.unAuthTeam);
+    teamPermission = new TeamPermission({ isOwner: true });
+  } else {
+    if (!tmb.permission.checkPer(props.per ?? NullPermission)) {
+      return Promise.reject(TeamErrEnum.unAuthTeam);
+    }
+    teamPermission = tmb.permission;
   }
 
-  return {
+  const ret = {
     ...result,
-    permission: tmb.permission,
-    tmb
+    permission: teamPermission,
+    teamPer: teamPermission,
+    tmb,
+    [Symbol.iterator]: function* () {
+      yield this.teamId;
+      yield this.tmbId;
+      yield this.permission;
+    }
   };
+
+  return ret;
 }
 
 export const authSystemAdmin = async ({ req }: { req: ApiRequestProps }) => {

@@ -3,7 +3,6 @@ import { MongoDataset } from '@fastgpt/service/core/dataset/schema';
 import { authUserPer } from '@fastgpt/service/support/permission/user/auth';
 import { NextAPI } from '@/service/middleware/entry';
 import { ReadPermissionVal } from '@fastgpt/global/support/permission/constant';
-import { TeamMemberRoleEnum } from '@fastgpt/global/support/user/team/constant';
 
 async function handler(req: NextApiRequest, res: NextApiResponse<any>) {
   const { parentId, type } = req.query as { parentId?: string; type?: DatasetTypeEnum };
@@ -16,8 +15,14 @@ async function handler(req: NextApiRequest, res: NextApiResponse<any>) {
     per: ReadPermissionVal
   });
 
+  // 确保 teamPer 存在以供后续权限判断
+  if (!teamPer) {
+    throw new Error('权限验证失败: 未获取到 teamPer');
+  }
+
   // 禁止 visitor 角色访问
-  if (teamPer.role === TeamMemberRoleEnum.visitor) {
+  console.log('teamPer', teamPer);
+  if (!teamPer.hasManagePer) {
     throw new Error('无权访问');
   }
 
@@ -92,5 +97,4 @@ async function handler(req: NextApiRequest, res: NextApiResponse<any>) {
     list: formatDatasets
   });
 }
-
 export default NextAPI(handler);
