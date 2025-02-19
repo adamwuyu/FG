@@ -12,6 +12,7 @@ type State = {
   loadAllDatasets: () => Promise<DatasetSimpleItemType[]>;
   myDatasets: DatasetListItemType[];
   loadMyDatasets: (parentId?: string) => Promise<DatasetListItemType[]>;
+  setMyDatasets(val: DatasetListItemType[]): void;
 };
 
 export const useDatasetStore = create<State>()(
@@ -33,6 +34,11 @@ export const useDatasetStore = create<State>()(
             state.myDatasets = res;
           });
           return res;
+        },
+        setMyDatasets(val) {
+          set((state) => {
+            state.myDatasets = val;
+          });
         }
       })),
       {
