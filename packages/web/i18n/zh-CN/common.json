@@ -1245,6 +1245,7 @@
   "user.no_usage_records": "暂无使用记录",
   "user.old_password": "旧密码",
   "user.password_message": "密码最少 4 位最多 60 位",
+  "user.Balance": "余额",
   "user.team.Balance": "团队余额",
   "user.team.Check Team": "切换",
   "user.team.Invite Member": "邀请成员",
