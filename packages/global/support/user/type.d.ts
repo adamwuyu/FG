@@ -17,6 +17,7 @@ export type UserModelSchema = {
   fastgpt_sem?: {
     keyword: string;
   };
+  balance: number; // Adam: 新增的属性
 };
 
 export type UserType = {
@@ -27,6 +28,7 @@ export type UserType = {
   promotionRate: UserModelSchema['promotionRate'];
   team: TeamTmbItemType;
   standardInfo?: standardInfoType;
+  balance: number; // Adam: 新增的属性
   notificationAccount?: string;
   permission: TeamPermission;
 };
@@ -35,4 +37,5 @@ export type SourceMemberType = {
   name: string;
   avatar: string;
   status: `${TeamMemberStatusEnum}`;
+  balance: number; // Adam: 新增的属性
 };

@@ -92,3 +92,7 @@ export const getCaptchaPic = (username: string) =>
   }>('/proApi/support/user/account/captcha/getImgCaptcha', { username });
 
 export const postSyncMembers = () => POST('/proApi/support/user/team/org/sync');
+
+// Adam: 封装积分改动
+export const consume = ({ userId, points }: { userId: string; points: number }) =>
+  POST('/support/user/points/consume', { userId, points });

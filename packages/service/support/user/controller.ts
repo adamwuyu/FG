@@ -42,6 +42,7 @@ export async function getUserDetail({
     _id: user._id,
     username: user.username,
     avatar: tmb.avatar,
+    balance: user.balance, // Adam: 新增的字段，这里读出来
     timezone: user.timezone,
     promotionRate: user.promotionRate,
     team: tmb,

@@ -46,6 +46,10 @@ const UserSchema = new Schema({
   lastLoginTmbId: {
     type: Schema.Types.ObjectId
   },
+  balance: {
+    type: Schema.Types.Number, // 使用 Decimal128 类型
+    default: 0.0 // 默认值为 0.0
+  },
 
   inviterId: {
     // 谁邀请注册的

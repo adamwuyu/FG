@@ -65,6 +65,8 @@ import { ChatRecordContext } from '@/web/core/chat/context/chatRecordContext';
 import { ChatItemContext } from '@/web/core/chat/context/chatItemContext';
 import TimeBox from './components/TimeBox';
 import MyBox from '@fastgpt/web/components/common/MyBox';
+import { consume } from '@/web/support/user/api';
+import { useUserStore } from '@/web/support/user/useUserStore';
 
 const ResponseTags = dynamic(() => import('./components/ResponseTags'));
 const FeedbackModal = dynamic(() => import('./components/FeedbackModal'));
@@ -105,6 +107,7 @@ const ChatBox = ({
   active = true,
   onStartChat
 }: Props) => {
+  const { userInfo } = useUserStore();
   const ScrollContainerRef = useRef<HTMLDivElement>(null);
   const { t } = useTranslation();
   const { toast } = useToast();
@@ -521,6 +524,24 @@ const ChatBox = ({
               toast({
                 title: t(responseData[responseData.length - 1].error?.message),
                 status: 'error'
+              });
+            }
+
+            // 新增计费功能代码
+            if (userInfo) {
+              // 遍历responseData数组，统计每个对象的totalPoints之和（如果存在）
+              let totalPoints = 0;
+              if (responseData) {
+                responseData.forEach((item) => {
+                  if (item.totalPoints) {
+                    totalPoints += item.totalPoints;
+                  }
+                });
+              }
+
+              consume({
+                userId: userInfo._id,
+                points: totalPoints
               });
             }
 

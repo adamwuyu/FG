@@ -248,6 +248,10 @@ const MyInfo = ({ onOpenContact }: { onOpenContact: () => void }) => {
           <Box {...labelStyles}>{t('account_info:user_account')}:&nbsp;</Box>
           <Box flex={1}>{userInfo?.username}</Box>
         </Flex>
+        <Flex alignItems={'center'} mt={6}>
+          <Box {...labelStyles}>{t('user.Balance')}:&nbsp;</Box>
+          <Box flex={1}>{userInfo?.balance.toFixed(4)}元</Box>
+        </Flex>
         {feConfigs?.isPlus && (
           <Flex mt={6} alignItems={'center'}>
             <Box {...labelStyles}>{t('account_info:password')}:&nbsp;</Box>
