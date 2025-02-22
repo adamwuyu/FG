@@ -30,13 +30,96 @@ export type GetDatasetListBody = {
 };
 
 async function handler(req: NextApiRequest, res: NextApiResponse<any>) {
+  const { parentId, type, searchKey } = req.body;
+
   // 凭证校验
-  const { teamId, tmbId, permission, tmb } = await authUserPer({
-    req,
-    authToken: true,
-    authApiKey: true,
-    per: ReadPermissionVal
-  });
+  // Auth user permission
+  const [{ tmbId, teamId, permission: teamPer, tmb }] = await Promise.all([
+    authUserPer({
+      req,
+      authToken: true,
+      authApiKey: true,
+      per: ReadPermissionVal
+    }),
+    ...(parentId
+      ? [
+          authDataset({
+            req,
+            authToken: true,
+            authApiKey: true,
+            per: ReadPermissionVal,
+            datasetId: parentId
+          })
+        ]
+      : [])
+  ]);
+
+  // Get team all app permissions
+  const [perList, myGroupMap, myOrgSet] = await Promise.all([
+    MongoResourcePermission.find({
+      resourceType: PerResourceTypeEnum.dataset,
+      teamId,
+      resourceId: {
+        $exists: true
+      }
+    }).lean(),
+    getGroupsByTmbId({
+      tmbId,
+      teamId
+    }).then((item) => {
+      const map = new Map<string, 1>();
+      item.forEach((item) => {
+        map.set(String(item._id), 1);
+      });
+      return map;
+    }),
+    getOrgIdSetWithParentByTmbId({
+      teamId,
+      tmbId
+    })
+  ]);
+  const myPerList = perList.filter(
+    (item) =>
+      String(item.tmbId) === String(tmbId) ||
+      myGroupMap.has(String(item.groupId)) ||
+      myOrgSet.has(String(item.orgId))
+  );
+
+  const findDatasetQuery = (() => {
+    // Filter apps by permission, if not owner, only get apps that I have permission to access
+    const idList = { _id: { $in: myPerList.map((item) => item.resourceId) } };
+    const datasetPerQuery = teamPer.isOwner
+      ? {}
+      : parentId
+        ? {
+            $or: [idList, parseParentIdInMongo(parentId)]
+          }
+        : { $or: [idList, { parentId: null }] };
+
+    const searchMatch = searchKey
+      ? {
+          $or: [
+            { name: { $regex: new RegExp(`${replaceRegChars(searchKey)}`, 'i') } },
+            { intro: { $regex: new RegExp(`${replaceRegChars(searchKey)}`, 'i') } }
+          ]
+        }
+      : {};
+
+    if (searchKey) {
+      return {
+        ...datasetPerQuery,
+        teamId,
+        ...searchMatch
+      };
+    }
+
+    return {
+      ...datasetPerQuery,
+      teamId,
+      ...(type ? (Array.isArray(type) ? { type: { $in: type } } : { type }) : {}),
+      ...parseParentIdInMongo(parentId)
+    };
+  })();
 
   // 禁止 visitor 角色访问
   if (tmb.role === TeamMemberRoleEnum.visitor) {
@@ -46,11 +129,11 @@ async function handler(req: NextApiRequest, res: NextApiResponse<any>) {
   }
 
   const queryConditions = {
-    ...(await mongoRPermission({ teamId, tmbId, permission })),
+    ...(await mongoRPermission({ teamId, tmbId, permission: teamPer })),
     ...(parentId !== undefined && { parentId: parentId || null }),
     ...(type && { type })
   };
-  const datasets = await MongoDataset.find(queryConditions).sort({ updateTime: -1 }).lean();
+  const myDatasets = await MongoDataset.find(queryConditions).sort({ updateTime: -1 }).lean();
 
   const formatDatasets = myDatasets
     .map((dataset) => {
