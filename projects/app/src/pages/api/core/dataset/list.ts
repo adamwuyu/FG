@@ -19,6 +19,9 @@ import { concatPer } from '@fastgpt/service/support/permission/controller';
 import { getOrgIdSetWithParentByTmbId } from '@fastgpt/service/support/permission/org/controllers';
 import { addSourceMember } from '@fastgpt/service/support/user/utils';
 import { getEmbeddingModel } from '@fastgpt/service/core/ai/model';
+import { TeamMemberRoleEnum } from '@fastgpt/global/support/user/team/constant';
+import { mongoRPermission } from '@fastgpt/global/support/permission/utils';
+import { NextApiRequest, NextApiResponse } from 'next';
 
 export type GetDatasetListBody = {
   parentId: ParentIdType;

@@ -36,9 +36,9 @@ export const useInitApp = () => {
     //     `GitHub：https://github.com/labring/FastGPT`
     //   );
     // }
-    if (show_git) {
-      loadGitStar();
-    }
+    // if (show_git) {
+    //   loadGitStar();
+    // }
 
     setScripts(scripts || []);
     setInitd();

@@ -155,9 +155,12 @@ async function handler(req: ApiRequestProps<ListAppBody>): Promise<AppListItemTy
       const perVal = myPerList.find(
         (item) => String(item.resourceId) === String(app._id)
       )?.permission;
-      const hasOverlap = app.teamTags.some((tag) => tagKeys.includes(tag)); // 补丁0021: 检查交集
       const isSameTeam = String(app.teamId) === String(teamId); // 检查 teamId 是否相同
-      const isRoot = String(tmb.userId) === '667181600410cce52bf78e05'; // 检查是否为 root 用户
+      const isRoot = String(tmb.userId) === '67b1312ad9d41c2d4f2b5ce0'; // 检查是否为 root 用户
+      let hasOverlap = app.teamTags ? app.teamTags.some((tag) => tagKeys.includes(tag)) : false; // 补丁0021: 检查交集
+      if (app.teamTags === null) {
+        hasOverlap = isRoot;
+      }
       const Per = new AppPermission({
         per: perVal ?? app.defaultPermission,
         isOwner: String(app.tmbId) === tmbId || tmbPer.isOwner
