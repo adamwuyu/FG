@@ -5,7 +5,7 @@
       "value": "pc",
       "domain": "localhost",
       "path": "/",
-      "expires": 1742890942,
+      "expires": 1742910931,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"
@@ -15,17 +15,17 @@
       "value": "zh-CN",
       "domain": "localhost",
       "path": "/",
-      "expires": 1742890944,
+      "expires": 1742910933,
       "httpOnly": false,
       "secure": false,
       "sameSite": "Lax"
     },
     {
       "name": "fastgpt_token",
-      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2N2IxMzEyYWQ5ZDQxYzJkNGYyYjVjZTAiLCJ0ZWFtSWQiOiI2N2IxMzEyYWQ5ZDQxYzJkNGYyYjVjZTUiLCJ0bWJJZCI6IjY3YjEzMTJhZDlkNDFjMmQ0ZjJiNWNlNyIsImlzUm9vdCI6dHJ1ZSwiZXhwIjoxNzQwOTAzNzQ0LCJpYXQiOjE3NDAyOTg5NDR9.8830DoPBAaN7lul_JsyzT-pM3zoohou0JYBdz3LguMA",
+      "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2N2IxMzEyYWQ5ZDQxYzJkNGYyYjVjZTAiLCJ0ZWFtSWQiOiI2N2IxMzEyYWQ5ZDQxYzJkNGYyYjVjZTUiLCJ0bWJJZCI6IjY3YjEzMTJhZDlkNDFjMmQ0ZjJiNWNlNyIsImlzUm9vdCI6dHJ1ZSwiZXhwIjoxNzQwOTIzNzMzLCJpYXQiOjE3NDAzMTg5MzN9.bA9EfnX2-C0VJGg5Kj04Pi451LkK0s4IxWmparkEIQ0",
       "domain": "localhost",
       "path": "/",
-      "expires": 1740903744.540499,
+      "expires": 1740923733.20325,
       "httpOnly": true,
       "secure": false,
       "sameSite": "Strict"

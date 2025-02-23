@@ -117,7 +117,7 @@ mongodb:
   architecture: replicaset
   auth:
     rootUser: root
-    rootPassword: 'IloveGPT!'
+    rootPassword: '123456'
 
 postgresql:
   # -- Enable or disable the built-in PostgreSQL
