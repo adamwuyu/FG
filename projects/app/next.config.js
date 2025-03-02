@@ -3,6 +3,7 @@ const path = require('path');
 const fs = require('fs');
 
 const isDev = process.env.NODE_ENV === 'development';
+process.env.OPENAI_BASE_URL = 'https://api.superoceansh.com/v1';
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
