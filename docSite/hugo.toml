@@ -8,7 +8,7 @@ defaultContentLanguage = 'zh-cn'
 defaultContentLanguageInSubdir = false
 [languages]
   [languages.zh-cn]
-    title = "AGPT"
+    title = "悟空GPT"
     languageName = "简体中文"
     contentDir = "content/zh-cn"
     weight = 10

@@ -34,7 +34,7 @@ function embedChatbot() {
   const iframe = document.createElement('iframe');
   iframe.allow = '*';
   iframe.referrerPolicy = 'no-referrer';
-  iframe.title = 'AGPT Chat Window';
+  iframe.title = '悟空GPT对话窗口';
   iframe.id = chatWindowId;
   iframe.src = botSrc;
   iframe.style.cssText =
