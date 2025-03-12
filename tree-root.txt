@@ -1,0 +1,205 @@
+.
+├── LICENSE
+├── Makefile
+├── NOTEPADS
+│   └── 如何测试.md
+├── README.md
+├── README_en.md
+├── README_ja.md
+├── bin
+│   └── fastgpt-v1.0.0-helm.tgz
+├── dev.md
+├── docSite
+│   ├── Dockerfile
+│   ├── README.md
+│   ├── archetypes
+│   │   └── default.md
+│   ├── assets
+│   │   ├── docs
+│   │   ├── images
+│   │   └── imgs
+│   ├── content
+│   │   └── zh-cn
+│   ├── go.mod
+│   ├── go.sum
+│   ├── hugo.toml
+│   ├── i18n
+│   │   └── zh-cn.toml
+│   ├── layouts
+│   │   ├── docs
+│   │   ├── partials
+│   │   ├── redirect
+│   │   └── shortcodes
+│   ├── static
+│   │   ├── android-chrome-192x192.png
+│   │   ├── android-chrome-256x256.png
+│   │   ├── android-chrome-512x512.png
+│   │   ├── apple-touch-icon.png
+│   │   ├── browserconfig.xml
+│   │   ├── docs
+│   │   ├── favicon-16x16.png
+│   │   ├── favicon-32x32.png
+│   │   ├── favicon.ico
+│   │   ├── favicon.svg
+│   │   ├── js
+│   │   ├── mstile-150x150.png
+│   │   ├── safari-pinned-tab.svg
+│   │   ├── site.webmanifest
+│   │   └── wechat-fastgpt.webp
+│   └── vercel.json
+├── file_structure.md
+├── files
+│   ├── docker
+│   │   ├── docker-compose
+│   │   ├── docker-compose-milvus.yml
+│   │   ├── docker-compose-pgvector.yml
+│   │   ├── docker-compose-zilliz.yml
+│   │   └── run.sh
+│   ├── helm
+│   │   └── fastgpt
+│   └── models
+│       ├── Baichuan2
+│       └── ChatGLM2
+├── package.json
+├── packages
+│   ├── global
+│   │   ├── common
+│   │   ├── core
+│   │   ├── package.json
+│   │   ├── support
+│   │   └── tsconfig.json
+│   ├── plugins
+│   │   ├── README.md
+│   │   ├── package.json
+│   │   ├── register.ts
+│   │   ├── runtime
+│   │   ├── src
+│   │   ├── tsconfig.json
+│   │   └── type.d.ts
+│   ├── service
+│   │   ├── common
+│   │   ├── core
+│   │   ├── package.json
+│   │   ├── support
+│   │   ├── tsconfig.json
+│   │   ├── type
+│   │   ├── type.d.ts
+│   │   └── worker
+│   ├── templates
+│   │   ├── README.md
+│   │   ├── package.json
+│   │   ├── register.ts
+│   │   ├── src
+│   │   ├── tsconfig.json
+│   │   └── type.d.ts
+│   └── web
+│       ├── common
+│       ├── components
+│       ├── context
+│       ├── core
+│       ├── hooks
+│       ├── i18n
+│       ├── package.json
+│       ├── styles
+│       ├── tsconfig.json
+│       └── types
+├── playwright
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── playwright-report
+│   │   └── index.html
+│   ├── playwright.config.ts
+│   ├── storageState.json
+│   ├── tests
+│   │   ├── chat.spec.ts
+│   │   └── login.setup.ts
+│   └── tests-examples
+├── playwright.config.ts
+├── pnpm-lock.yaml
+├── pnpm-workspace.yaml
+├── projects
+│   ├── app
+│   │   ├── Dockerfile
+│   │   ├── data
+│   │   ├── jest.config.js
+│   │   ├── next-env.d.ts
+│   │   ├── next-i18next.config.js
+│   │   ├── next.config.js
+│   │   ├── package.json
+│   │   ├── public
+│   │   ├── src
+│   │   ├── test-request.js
+│   │   └── tsconfig.json
+│   └── sandbox
+│       ├── Dockerfile
+│       ├── README.md
+│       ├── nest-cli.json
+│       ├── package.json
+│       ├── src
+│       ├── tsconfig.build.json
+│       └── tsconfig.json
+├── python
+│   ├── README.md
+│   ├── api
+│   │   ├── README.md
+│   │   ├── api.py
+│   │   ├── dockerfile
+│   │   ├── main.py
+│   │   ├── requirements.txt
+│   │   └── services
+│   ├── bge-rerank
+│   │   ├── README.md
+│   │   ├── bge-reranker-base
+│   │   ├── bge-reranker-large
+│   │   ├── bge-reranker-v2-m3
+│   │   └── rerank1.png
+│   ├── cosevoice
+│   │   ├── Dockerfile
+│   │   ├── fastapi
+│   │   ├── grpc
+│   │   └── requirements.txt
+│   ├── ocr
+│   │   └── surya
+│   ├── pdf-marker
+│   │   ├── Dockerfile
+│   │   ├── Readme.md
+│   │   ├── api_mp.py
+│   │   ├── pip.conf
+│   │   └── requirements.txt
+│   └── sensevoice
+│       ├── Dockerfile
+│       ├── app
+│       ├── main.py
+│       └── run.sh
+├── scripts
+│   ├── i18n
+│   │   └── index.js
+│   ├── icon
+│   │   ├── index.js
+│   │   ├── init.js
+│   │   └── package.json
+│   ├── openapi
+│   │   ├── index.js
+│   │   ├── index.ts
+│   │   ├── openapi.js
+│   │   ├── openapi.json
+│   │   ├── openapi.out
+│   │   ├── openapi.ts
+│   │   ├── package.json
+│   │   ├── template.md
+│   │   ├── type.d.ts
+│   │   ├── utils.js
+│   │   └── utils.ts
+│   └── postinstall.sh
+├── src
+│   ├── package
+│   │   └── app
+│   └── web
+│       └── common
+├── tree-root.txt
+├── tsconfig.json
+├── zhlint
+├── 生成文件结构.bat
+└── 生成文件结构.sh
+
+88 directories, 115 files

@@ -1,0 +1,390 @@
+.
+├── global
+│   ├── common
+│   │   └── api
+│   │       └── systemRes.d.ts
+│   ├── core
+│   │   ├── api
+│   │   │   ├── appReq.d.ts
+│   │   │   ├── datasetReq.d.ts
+│   │   │   └── datasetRes.d.ts
+│   │   ├── app
+│   │   │   └── api.d.ts
+│   │   ├── chat
+│   │   │   └── api.d.ts
+│   │   ├── dataset
+│   │   │   ├── api.d.ts
+│   │   │   └── type.d.ts
+│   │   └── workflow
+│   │       └── api.d.ts
+│   └── support
+│       ├── api
+│       │   └── userRes.d.ts
+│       └── openapi
+│           └── api.d.ts
+├── instrumentation.ts
+├── pages
+│   ├── 404.tsx
+│   ├── _app.tsx
+│   ├── _document.tsx
+│   ├── _error.tsx
+│   ├── api
+│   │   ├── common
+│   │   │   ├── file
+│   │   │   │   ├── previewContent.ts
+│   │   │   │   ├── read
+│   │   │   │   │   └── [filename].ts
+│   │   │   │   ├── read.ts
+│   │   │   │   ├── upload.ts
+│   │   │   │   └── uploadImage.ts
+│   │   │   ├── system
+│   │   │   │   ├── getInitData.ts
+│   │   │   │   ├── unlockTask.ts
+│   │   │   │   └── writefile.ts
+│   │   │   ├── tools
+│   │   │   │   └── urlFetch.ts
+│   │   │   └── tracks
+│   │   │       └── push.ts
+│   │   ├── core
+│   │   │   ├── ai
+│   │   │   │   ├── agent
+│   │   │   │   │   ├── createQuestionGuide.ts
+│   │   │   │   │   └── v2
+│   │   │   │   │       └── createQuestionGuide.ts
+│   │   │   │   ├── model
+│   │   │   │   │   ├── delete.ts
+│   │   │   │   │   ├── detail.ts
+│   │   │   │   │   ├── getConfigJson.ts
+│   │   │   │   │   ├── getDefaultConfig.ts
+│   │   │   │   │   ├── list.ts
+│   │   │   │   │   ├── test.ts
+│   │   │   │   │   ├── update.ts
+│   │   │   │   │   ├── updateDefault.ts
+│   │   │   │   │   └── updateWithJson.ts
+│   │   │   │   └── token.ts
+│   │   │   ├── app
+│   │   │   │   ├── copy.ts
+│   │   │   │   ├── create.ts
+│   │   │   │   ├── del.ts
+│   │   │   │   ├── detail.ts
+│   │   │   │   ├── exportChatLogs.ts
+│   │   │   │   ├── folder
+│   │   │   │   │   ├── create.ts
+│   │   │   │   │   └── path.ts
+│   │   │   │   ├── getChatLogs.ts
+│   │   │   │   ├── httpPlugin
+│   │   │   │   │   ├── create.ts
+│   │   │   │   │   ├── getApiSchemaByUrl.ts
+│   │   │   │   │   └── update.ts
+│   │   │   │   ├── list.ts
+│   │   │   │   ├── plugin
+│   │   │   │   │   ├── getPreviewNode.ts
+│   │   │   │   │   ├── getSystemPluginTemplates.ts
+│   │   │   │   │   └── path.ts
+│   │   │   │   ├── resumeInheritPermission.ts
+│   │   │   │   ├── template
+│   │   │   │   │   ├── detail.ts
+│   │   │   │   │   └── list.ts
+│   │   │   │   ├── transitionWorkflow.ts
+│   │   │   │   ├── update.ts
+│   │   │   │   └── version
+│   │   │   │       ├── detail.ts
+│   │   │   │       ├── latest.ts
+│   │   │   │       ├── list.ts
+│   │   │   │       ├── publish.ts
+│   │   │   │       └── update.ts
+│   │   │   ├── chat
+│   │   │   │   ├── chatTest.ts
+│   │   │   │   ├── clearHistories.ts
+│   │   │   │   ├── delHistory.ts
+│   │   │   │   ├── feedback
+│   │   │   │   │   ├── adminUpdate.ts
+│   │   │   │   │   ├── closeCustom.ts
+│   │   │   │   │   └── updateUserFeedback.ts
+│   │   │   │   ├── getHistories.ts
+│   │   │   │   ├── getPaginationRecords.ts
+│   │   │   │   ├── getResData.ts
+│   │   │   │   ├── init.ts
+│   │   │   │   ├── inputGuide
+│   │   │   │   │   ├── countTotal.ts
+│   │   │   │   │   ├── create.ts
+│   │   │   │   │   ├── delete.ts
+│   │   │   │   │   ├── deleteAll.ts
+│   │   │   │   │   ├── list.ts
+│   │   │   │   │   ├── query.ts
+│   │   │   │   │   └── update.ts
+│   │   │   │   ├── item
+│   │   │   │   │   ├── delete.ts
+│   │   │   │   │   └── getSpeech.ts
+│   │   │   │   ├── outLink
+│   │   │   │   │   └── init.ts
+│   │   │   │   ├── team
+│   │   │   │   │   └── init.ts
+│   │   │   │   └── updateHistory.ts
+│   │   │   ├── dataset
+│   │   │   │   ├── allDataset.ts
+│   │   │   │   ├── apiDataset
+│   │   │   │   │   ├── list.ts
+│   │   │   │   │   └── listExistId.ts
+│   │   │   │   ├── collection
+│   │   │   │   │   ├── create
+│   │   │   │   │   │   ├── apiCollection.ts
+│   │   │   │   │   │   ├── csvTable.ts
+│   │   │   │   │   │   ├── fileId.ts
+│   │   │   │   │   │   ├── link.ts
+│   │   │   │   │   │   ├── localFile.ts
+│   │   │   │   │   │   ├── reTrainingCollection.ts
+│   │   │   │   │   │   └── text.ts
+│   │   │   │   │   ├── create.ts
+│   │   │   │   │   ├── delete.ts
+│   │   │   │   │   ├── detail.ts
+│   │   │   │   │   ├── list.ts
+│   │   │   │   │   ├── listV2.ts
+│   │   │   │   │   ├── paths.ts
+│   │   │   │   │   ├── read.ts
+│   │   │   │   │   ├── scrollList.ts
+│   │   │   │   │   ├── sync.ts
+│   │   │   │   │   └── update.ts
+│   │   │   │   ├── create.ts
+│   │   │   │   ├── data
+│   │   │   │   │   ├── delete.ts
+│   │   │   │   │   ├── detail.ts
+│   │   │   │   │   ├── getQuoteData.ts
+│   │   │   │   │   ├── insertData.ts
+│   │   │   │   │   ├── list.ts
+│   │   │   │   │   ├── pushData.ts
+│   │   │   │   │   ├── update.ts
+│   │   │   │   │   └── v2
+│   │   │   │   │       └── list.ts
+│   │   │   │   ├── delete.ts
+│   │   │   │   ├── detail.ts
+│   │   │   │   ├── exportAll.ts
+│   │   │   │   ├── file
+│   │   │   │   │   └── getPreviewChunks.ts
+│   │   │   │   ├── folder
+│   │   │   │   │   └── create.ts
+│   │   │   │   ├── list.ts
+│   │   │   │   ├── paths.ts
+│   │   │   │   ├── resumeInheritPermission.ts
+│   │   │   │   ├── searchTest.ts
+│   │   │   │   ├── training
+│   │   │   │   │   ├── getDatasetTrainingQueue.ts
+│   │   │   │   │   ├── getQueueLen.ts
+│   │   │   │   │   └── rebuildEmbedding.ts
+│   │   │   │   └── update.ts
+│   │   │   └── workflow
+│   │   │       └── debug.ts
+│   │   ├── lafApi
+│   │   │   └── [...path].ts
+│   │   ├── proApi
+│   │   │   └── [...path].ts
+│   │   ├── support
+│   │   │   ├── openapi
+│   │   │   │   ├── create.ts
+│   │   │   │   ├── delete.ts
+│   │   │   │   ├── list.ts
+│   │   │   │   └── update.ts
+│   │   │   ├── outLink
+│   │   │   │   ├── create.ts
+│   │   │   │   ├── delete.ts
+│   │   │   │   ├── dingtalk
+│   │   │   │   │   └── [token].ts
+│   │   │   │   ├── feishu
+│   │   │   │   │   └── [token].ts
+│   │   │   │   ├── list.ts
+│   │   │   │   ├── offiaccount
+│   │   │   │   │   └── [token].ts
+│   │   │   │   ├── update.ts
+│   │   │   │   └── wecom
+│   │   │   │       └── [token].ts
+│   │   │   ├── user
+│   │   │   │   ├── points
+│   │   │   │   │   └── consume.ts
+│   │   │   │   └── team
+│   │   │   │       ├── limit
+│   │   │   │       │   ├── datasetSizeLimit.ts
+│   │   │   │       │   ├── exportDatasetLimit.ts
+│   │   │   │       │   └── webSyncLimit.ts
+│   │   │   │       ├── plan
+│   │   │   │       │   └── getTeamPlanStatus.ts
+│   │   │   │       ├── tag
+│   │   │   │       │   └── list.ts
+│   │   │   │       ├── thirtdParty
+│   │   │   │       │   └── checkUsage.ts
+│   │   │   │       └── update.ts
+│   │   │   └── wallet
+│   │   ├── system
+│   │   │   └── img
+│   │   │       └── [id].ts
+│   │   └── v1
+│   │       ├── audio
+│   │       │   └── transcriptions.ts
+│   │       ├── chat
+│   │       │   └── completions.ts
+│   │       └── embeddings.ts
+│   ├── app
+│   │   ├── detail
+│   │   │   └── index.tsx
+│   │   └── list
+│   │       └── index.tsx
+│   ├── chat
+│   │   ├── index.tsx
+│   │   ├── share.tsx
+│   │   └── team.tsx
+│   ├── dataset
+│   │   ├── detail
+│   │   │   └── index.tsx
+│   │   └── list
+│   │       ├── context.tsx
+│   │       └── index.tsx
+│   ├── index.tsx
+│   ├── login
+│   │   ├── fastlogin.tsx
+│   │   ├── index.tsx
+│   │   └── provider.tsx
+│   ├── more
+│   │   └── index.tsx
+│   ├── price
+│   │   └── index.tsx
+│   ├── register
+│   │   └── index.tsx
+│   └── toolkit
+│       └── index.tsx
+├── service
+│   ├── common
+│   │   ├── frequencyLimit
+│   │   │   └── api.ts
+│   │   └── system
+│   │       ├── cron.ts
+│   │       ├── cronTask.ts
+│   │       ├── index.ts
+│   │       └── volumnMongoWatch.ts
+│   ├── core
+│   │   ├── ai
+│   │   │   ├── apiproxy.d.ts
+│   │   │   └── apiproxy.ts
+│   │   ├── app
+│   │   │   ├── plugin.ts
+│   │   │   └── workflow.ts
+│   │   └── dataset
+│   │       ├── apiDataset
+│   │       │   └── controller.ts
+│   │       ├── data
+│   │       │   └── controller.ts
+│   │       └── training
+│   ├── events
+│   │   ├── generateQA.ts
+│   │   └── generateVector.ts
+│   ├── middleware
+│   │   └── entry.ts
+│   ├── mongo.ts
+│   └── support
+│       ├── permission
+│       │   └── auth
+│       │       ├── chat.ts
+│       │       ├── outLink.ts
+│       │       └── team.ts
+│       ├── user
+│       │   └── inform
+│       │       └── api.ts
+│       └── wallet
+│           └── sub
+├── types
+│   ├── app.d.ts
+│   ├── chat.d.ts
+│   ├── common
+│   │   └── file.d.ts
+│   ├── index.d.ts
+│   └── user.d.ts
+└── web
+    ├── common
+    │   ├── api
+    │   │   ├── fetch.ts
+    │   │   ├── lafRequest.ts
+    │   │   └── request.ts
+    │   ├── file
+    │   │   ├── api.ts
+    │   │   ├── controller.ts
+    │   │   └── hooks
+    │   │       └── useSelectFile.tsx
+    │   ├── hooks
+    │   │   ├── useEditTitle.tsx
+    │   │   ├── useMarkdown.ts
+    │   │   ├── useRequest.tsx
+    │   │   ├── useSpeech.ts
+    │   │   └── useSticky.ts
+    │   ├── middle
+    │   │   └── tracks
+    │   ├── system
+    │   │   ├── api.ts
+    │   │   ├── doc.ts
+    │   │   ├── staticData.ts
+    │   │   └── useSystemStore.ts
+    │   ├── tools
+    │   │   └── api.ts
+    │   └── utils
+    │       ├── eventbus.ts
+    │       ├── i18n.ts
+    │       └── voice.ts
+    ├── core
+    │   ├── ai
+    │   │   ├── api.ts
+    │   │   └── config.ts
+    │   ├── app
+    │   │   ├── api
+    │   │   │   ├── app.ts
+    │   │   │   ├── collaborator.ts
+    │   │   │   ├── plugin.ts
+    │   │   │   ├── template.ts
+    │   │   │   └── version.ts
+    │   │   ├── api.ts
+    │   │   ├── diff.ts
+    │   │   └── templates.ts
+    │   ├── chat
+    │   │   ├── api.ts
+    │   │   ├── inputGuide
+    │   │   │   └── api.ts
+    │   │   └── storeShareChat.ts
+    │   ├── dataset
+    │   │   ├── api
+    │   │   │   └── collaborator.ts
+    │   │   ├── api.ts
+    │   │   ├── hooks
+    │   │   │   └── readCollectionSource.ts
+    │   │   ├── store
+    │   │   │   ├── dataset.ts
+    │   │   │   ├── markdata.ts
+    │   │   │   └── searchTest.ts
+    │   │   └── type.d.ts
+    │   └── workflow
+    │       ├── adapt.ts
+    │       └── api.ts
+    └── support
+        ├── activity
+        │   └── promotion
+        │       └── api.ts
+        ├── laf
+        │   └── api.ts
+        ├── openapi
+        │   └── api.ts
+        ├── outLink
+        │   └── api.ts
+        ├── user
+        │   ├── api.ts
+        │   ├── auth.ts
+        │   ├── hooks
+        │   │   └── useSendCode.tsx
+        │   ├── inform
+        │   │   └── api.ts
+        │   ├── login
+        │   ├── team
+        │   │   ├── api.ts
+        │   │   ├── group
+        │   │   │   └── api.ts
+        │   │   └── org
+        │   │       └── api.ts
+        │   └── useUserStore.ts
+        └── wallet
+            └── sub
+
+141 directories, 247 files

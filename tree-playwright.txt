@@ -1,0 +1,6 @@
+.
+├── playwright-report
+│   └── index.html
+└── playwright.config.ts
+
+2 directories, 2 files

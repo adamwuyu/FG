@@ -1,0 +1,866 @@
+.
+├── data
+├── next-env.d.ts
+└── src
+    ├── components
+    │   ├── Badge
+    │   │   └── index.tsx
+    │   ├── CommunityModal
+    │   │   └── index.tsx
+    │   ├── Layout
+    │   │   ├── auth.tsx
+    │   │   ├── index.tsx
+    │   │   ├── navbar.tsx
+    │   │   └── navbarPhone.tsx
+    │   ├── Markdown
+    │   │   ├── A.tsx
+    │   │   ├── chat
+    │   │   │   ├── Guide.tsx
+    │   │   │   └── QuestionGuide.tsx
+    │   │   ├── codeBlock
+    │   │   │   ├── Audio.tsx
+    │   │   │   ├── CodeLight.tsx
+    │   │   │   ├── Iframe.tsx
+    │   │   │   ├── Video.tsx
+    │   │   │   └── iframe-html.tsx
+    │   │   ├── hooks.ts
+    │   │   ├── img
+    │   │   │   ├── EChartsCodeBlock.tsx
+    │   │   │   ├── Image.tsx
+    │   │   │   └── MermaidCodeBlock.tsx
+    │   │   ├── index.tsx
+    │   │   └── utils.ts
+    │   ├── MyImage
+    │   │   └── index.tsx
+    │   ├── MyInput
+    │   │   └── index.tsx
+    │   ├── PageContainer
+    │   │   └── index.tsx
+    │   ├── PromptTemplate
+    │   │   └── index.tsx
+    │   ├── Select
+    │   │   ├── AIModelSelector.tsx
+    │   │   └── I18nLngSelector.tsx
+    │   ├── SideBar
+    │   │   └── index.tsx
+    │   ├── SideTabs
+    │   │   └── index.tsx
+    │   ├── Slider
+    │   │   └── index.tsx
+    │   ├── common
+    │   │   ├── ComplianceTip
+    │   │   │   └── index.tsx
+    │   │   ├── HiddenInput
+    │   │   │   └── index.tsx
+    │   │   ├── Modal
+    │   │   │   ├── EditResourceModal.tsx
+    │   │   │   └── UseGuideModal.tsx
+    │   │   ├── MyRadio
+    │   │   │   └── index.tsx
+    │   │   ├── NextHead
+    │   │   │   └── index.tsx
+    │   │   ├── ParentPaths
+    │   │   │   └── index.tsx
+    │   │   ├── Textarea
+    │   │   │   ├── MyTextarea
+    │   │   │   │   ├── VariableTip.tsx
+    │   │   │   │   └── index.tsx
+    │   │   │   └── TagTextarea.tsx
+    │   │   └── folder
+    │   │       ├── MoveModal.tsx
+    │   │       ├── Path.tsx
+    │   │       ├── SelectOneResource.tsx
+    │   │       ├── SlideCard.tsx
+    │   │       └── useFolderDrag.tsx
+    │   ├── core
+    │   │   ├── ai
+    │   │   │   ├── AISettingModal
+    │   │   │   │   └── index.tsx
+    │   │   │   ├── ModelTable
+    │   │   │   │   └── index.tsx
+    │   │   │   └── SettingLLMModel
+    │   │   │       └── index.tsx
+    │   │   ├── app
+    │   │   │   ├── AutoExecConfig.tsx
+    │   │   │   ├── DatasetParamsModal.tsx
+    │   │   │   ├── DatasetSelectModal.tsx
+    │   │   │   ├── FileSelect.tsx
+    │   │   │   ├── InputGuideConfig.tsx
+    │   │   │   ├── QGConfig.tsx
+    │   │   │   ├── ScheduledTriggerConfig.tsx
+    │   │   │   ├── TTSSelect.tsx
+    │   │   │   ├── Tip.tsx
+    │   │   │   ├── VariableEdit.tsx
+    │   │   │   ├── WelcomeTextConfig.tsx
+    │   │   │   ├── WhisperConfig.tsx
+    │   │   │   └── plugin
+    │   │   │       └── CostTooltip.tsx
+    │   │   ├── chat
+    │   │   │   ├── ChatContainer
+    │   │   │   │   ├── ChatBox
+    │   │   │   │   │   ├── Input
+    │   │   │   │   │   │   ├── ChatInput.tsx
+    │   │   │   │   │   │   └── InputGuideBox.tsx
+    │   │   │   │   │   ├── Provider.tsx
+    │   │   │   │   │   ├── components
+    │   │   │   │   │   │   ├── ChatAvatar.tsx
+    │   │   │   │   │   │   ├── ChatController.tsx
+    │   │   │   │   │   │   ├── ChatItem.tsx
+    │   │   │   │   │   │   ├── ContextModal.tsx
+    │   │   │   │   │   │   ├── Empty.tsx
+    │   │   │   │   │   │   ├── FeedbackModal.tsx
+    │   │   │   │   │   │   ├── FilesBox.tsx
+    │   │   │   │   │   │   ├── QuoteModal.tsx
+    │   │   │   │   │   │   ├── ReadFeedbackModal.tsx
+    │   │   │   │   │   │   ├── ResponseTags.tsx
+    │   │   │   │   │   │   ├── SelectMarkCollection.tsx
+    │   │   │   │   │   │   ├── TimeBox.tsx
+    │   │   │   │   │   │   ├── VariableInput.tsx
+    │   │   │   │   │   │   └── WelcomeBox.tsx
+    │   │   │   │   │   ├── constants.ts
+    │   │   │   │   │   ├── hooks
+    │   │   │   │   │   │   ├── useChatBox.tsx
+    │   │   │   │   │   │   └── useFileUpload.tsx
+    │   │   │   │   │   ├── index.tsx
+    │   │   │   │   │   ├── type.d.ts
+    │   │   │   │   │   └── utils.ts
+    │   │   │   │   ├── PluginRunBox
+    │   │   │   │   │   ├── components
+    │   │   │   │   │   │   ├── RenderInput.tsx
+    │   │   │   │   │   │   ├── RenderOutput.tsx
+    │   │   │   │   │   │   ├── RenderResponseDetail.tsx
+    │   │   │   │   │   │   └── renderPluginInput.tsx
+    │   │   │   │   │   ├── constants.ts
+    │   │   │   │   │   ├── context.tsx
+    │   │   │   │   │   ├── index.tsx
+    │   │   │   │   │   └── type.d.ts
+    │   │   │   │   ├── components
+    │   │   │   │   │   └── FilePreview.tsx
+    │   │   │   │   └── type.d.ts
+    │   │   │   ├── Divider
+    │   │   │   │   └── index.tsx
+    │   │   │   └── components
+    │   │   │       ├── AIResponseBox.tsx
+    │   │   │       └── WholeResponseModal.tsx
+    │   │   └── dataset
+    │   │       ├── DatasetTypeTag.tsx
+    │   │       ├── QuoteItem.tsx
+    │   │       ├── RawSourceBox.tsx
+    │   │       ├── SearchParamsTip.tsx
+    │   │       └── SelectModal.tsx
+    │   └── support
+    │       ├── apikey
+    │       │   └── Table.tsx
+    │       ├── laf
+    │       │   └── LafAccountModal.tsx
+    │       ├── permission
+    │       │   ├── ChangeOwnerModal
+    │       │   │   └── index.tsx
+    │       │   ├── ConfigPerModal
+    │       │   │   └── index.tsx
+    │       │   ├── DefaultPerList
+    │       │   │   └── index.tsx
+    │       │   ├── Group
+    │       │   │   └── GroupTags.tsx
+    │       │   ├── IconText
+    │       │   │   └── index.tsx
+    │       │   ├── MemberManager
+    │       │   │   ├── ManageModal.tsx
+    │       │   │   ├── MemberListCard.tsx
+    │       │   │   ├── MemberModal.tsx
+    │       │   │   ├── PermissionSelect.tsx
+    │       │   │   ├── PermissionTags.tsx
+    │       │   │   └── context.tsx
+    │       │   ├── PermissionTags
+    │       │   │   └── index.tsx
+    │       │   ├── Radio
+    │       │   │   └── index.tsx
+    │       │   └── ResumeInheritText
+    │       │       └── index.tsx
+    │       ├── user
+    │       │   ├── inform
+    │       │   │   ├── ImportantInform.tsx
+    │       │   │   ├── SystemMsgModal.tsx
+    │       │   │   └── UpdateNotificationModal.tsx
+    │       │   ├── safe
+    │       │   │   └── SendCodeAuthModal.tsx
+    │       │   └── team
+    │       │       ├── Info
+    │       │       │   └── MemberTag.tsx
+    │       │       ├── TeamTagModal
+    │       │       │   └── index.tsx
+    │       │       └── UpdateInviteModal
+    │       │           └── index.tsx
+    │       └── wallet
+    │           ├── NotSufficientModal
+    │           │   └── index.tsx
+    │           ├── QRCodePayModal.tsx
+    │           └── StandardPlanContentList.tsx
+    ├── global
+    │   ├── common
+    │   │   └── api
+    │   │       └── systemRes.d.ts
+    │   ├── core
+    │   │   ├── api
+    │   │   │   ├── appReq.d.ts
+    │   │   │   ├── datasetReq.d.ts
+    │   │   │   └── datasetRes.d.ts
+    │   │   ├── app
+    │   │   │   └── api.d.ts
+    │   │   ├── chat
+    │   │   │   ├── api.d.ts
+    │   │   │   ├── constants.ts
+    │   │   │   └── utils.ts
+    │   │   ├── dataset
+    │   │   │   ├── api.d.ts
+    │   │   │   └── type.d.ts
+    │   │   └── workflow
+    │   │       └── api.d.ts
+    │   └── support
+    │       ├── api
+    │       │   └── userRes.d.ts
+    │       └── openapi
+    │           └── api.d.ts
+    ├── instrumentation.ts
+    ├── pageComponents
+    │   ├── account
+    │   │   ├── AccountContainer.tsx
+    │   │   ├── TeamSelector.tsx
+    │   │   ├── bill
+    │   │   │   ├── ApplyInvoiceModal.tsx
+    │   │   │   ├── BillTable.tsx
+    │   │   │   ├── InvoiceHeaderForm.tsx
+    │   │   │   └── InvoiceTable.tsx
+    │   │   ├── info
+    │   │   │   ├── ConversionModal.tsx
+    │   │   │   ├── UpdatePswModal.tsx
+    │   │   │   └── standardDetailModal.tsx
+    │   │   ├── model
+    │   │   │   └── ModelConfigTable.tsx
+    │   │   ├── team
+    │   │   │   ├── EditInfoModal.tsx
+    │   │   │   ├── GroupManage
+    │   │   │   │   ├── GroupInfoModal.tsx
+    │   │   │   │   ├── GroupManageMember.tsx
+    │   │   │   │   ├── GroupTransferOwnerModal.tsx
+    │   │   │   │   └── index.tsx
+    │   │   │   ├── InviteModal.tsx
+    │   │   │   ├── MemberTable.tsx
+    │   │   │   ├── OrgManage
+    │   │   │   │   ├── IconButton.tsx
+    │   │   │   │   ├── OrgInfoModal.tsx
+    │   │   │   │   ├── OrgMemberManageModal.tsx
+    │   │   │   │   ├── OrgMoveModal.tsx
+    │   │   │   │   ├── OrgTree.tsx
+    │   │   │   │   └── index.tsx
+    │   │   │   ├── PermissionManage
+    │   │   │   │   └── index.tsx
+    │   │   │   ├── SelectMember.tsx
+    │   │   │   └── context.tsx
+    │   │   ├── thirdParty
+    │   │   │   ├── OpenAIAccountModal.tsx
+    │   │   │   └── WorkflowVariableModal.tsx
+    │   │   └── usage
+    │   │       ├── Dashboard.tsx
+    │   │       ├── UsageDetail.tsx
+    │   │       ├── UsageTable.tsx
+    │   │       └── type.d.ts
+    │   ├── app
+    │   │   ├── ImportAppConfigEditor.tsx
+    │   │   ├── constants.ts
+    │   │   ├── detail
+    │   │   │   ├── ExportConfigPopover.tsx
+    │   │   │   ├── InfoModal.tsx
+    │   │   │   ├── Logs
+    │   │   │   │   ├── DetailLogsModal.tsx
+    │   │   │   │   └── index.tsx
+    │   │   │   ├── Plugin
+    │   │   │   │   ├── Header.tsx
+    │   │   │   │   └── index.tsx
+    │   │   │   ├── Publish
+    │   │   │   │   ├── API
+    │   │   │   │   │   └── index.tsx
+    │   │   │   │   ├── DingTalk
+    │   │   │   │   │   ├── DingTalkEditModal.tsx
+    │   │   │   │   │   └── index.tsx
+    │   │   │   │   ├── FeiShu
+    │   │   │   │   │   ├── FeiShuEditModal.tsx
+    │   │   │   │   │   └── index.tsx
+    │   │   │   │   ├── Link
+    │   │   │   │   │   ├── SelectUsingWayModal.tsx
+    │   │   │   │   │   └── index.tsx
+    │   │   │   │   ├── OffiAccount
+    │   │   │   │   │   ├── OffiAccountEditModal.tsx
+    │   │   │   │   │   └── index.tsx
+    │   │   │   │   ├── Wecom
+    │   │   │   │   │   ├── WecomEditModal.tsx
+    │   │   │   │   │   └── index.tsx
+    │   │   │   │   ├── components
+    │   │   │   │   │   ├── BasicInfo.tsx
+    │   │   │   │   │   └── showShareLinkModal.tsx
+    │   │   │   │   └── index.tsx
+    │   │   │   ├── PublishHistoriesSlider.tsx
+    │   │   │   ├── RouteTab.tsx
+    │   │   │   ├── SimpleApp
+    │   │   │   │   ├── AppCard.tsx
+    │   │   │   │   ├── ChatTest.tsx
+    │   │   │   │   ├── Edit.tsx
+    │   │   │   │   ├── EditForm.tsx
+    │   │   │   │   ├── Header.tsx
+    │   │   │   │   ├── components
+    │   │   │   │   │   ├── ConfigToolModal.tsx
+    │   │   │   │   │   ├── ToolSelect.tsx
+    │   │   │   │   │   └── ToolSelectModal.tsx
+    │   │   │   │   ├── index.tsx
+    │   │   │   │   └── useSnapshots.tsx
+    │   │   │   ├── TagsEditModal.tsx
+    │   │   │   ├── Workflow
+    │   │   │   │   ├── Header.tsx
+    │   │   │   │   ├── components
+    │   │   │   │   │   └── SaveButton.tsx
+    │   │   │   │   └── index.tsx
+    │   │   │   ├── constants.tsx
+    │   │   │   ├── context.tsx
+    │   │   │   └── useChatTest.tsx
+    │   │   └── list
+    │   │       ├── CreateModal.tsx
+    │   │       ├── HttpPluginEditModal.tsx
+    │   │       ├── JsonImportModal.tsx
+    │   │       ├── List.tsx
+    │   │       ├── TemplateMarketModal.tsx
+    │   │       ├── TypeTag.tsx
+    │   │       └── context.tsx
+    │   ├── chat
+    │   │   ├── ChatHeader.tsx
+    │   │   ├── ChatHistorySlider.tsx
+    │   │   ├── CustomPluginRunBox.tsx
+    │   │   ├── Empty.tsx
+    │   │   ├── SliderApps.tsx
+    │   │   └── ToolMenu.tsx
+    │   ├── dataset
+    │   │   ├── ApiDatasetForm.tsx
+    │   │   ├── EditFolderModal.tsx
+    │   │   ├── MemberManager.tsx
+    │   │   ├── detail
+    │   │   │   ├── CollectionCard
+    │   │   │   │   ├── Context.tsx
+    │   │   │   │   ├── EmptyCollectionTip.tsx
+    │   │   │   │   ├── Header.tsx
+    │   │   │   │   ├── HeaderTagPopOver.tsx
+    │   │   │   │   ├── TagManageModal.tsx
+    │   │   │   │   ├── TagsPopOver.tsx
+    │   │   │   │   ├── WebsiteConfig.tsx
+    │   │   │   │   └── index.tsx
+    │   │   │   ├── DataCard.tsx
+    │   │   │   ├── Import
+    │   │   │   │   ├── Context.tsx
+    │   │   │   │   ├── commonProgress
+    │   │   │   │   │   ├── DataProcess.tsx
+    │   │   │   │   │   ├── PreviewData.tsx
+    │   │   │   │   │   └── Upload.tsx
+    │   │   │   │   ├── components
+    │   │   │   │   │   ├── FileSelector.tsx
+    │   │   │   │   │   ├── FileSourceSelector.tsx
+    │   │   │   │   │   ├── Preview.tsx
+    │   │   │   │   │   ├── PreviewChunks.tsx
+    │   │   │   │   │   ├── PreviewRawText.tsx
+    │   │   │   │   │   └── RenderFiles.tsx
+    │   │   │   │   ├── diffSource
+    │   │   │   │   │   ├── APIDataset.tsx
+    │   │   │   │   │   ├── ExternalFile.tsx
+    │   │   │   │   │   ├── FileCustomText.tsx
+    │   │   │   │   │   ├── FileLink.tsx
+    │   │   │   │   │   ├── FileLocal.tsx
+    │   │   │   │   │   ├── ReTraining.tsx
+    │   │   │   │   │   └── TableLocal.tsx
+    │   │   │   │   ├── index.tsx
+    │   │   │   │   ├── type.d.ts
+    │   │   │   │   └── utils.tsx
+    │   │   │   ├── Info
+    │   │   │   │   ├── components
+    │   │   │   │   │   └── EditApiServiceModal.tsx
+    │   │   │   │   └── index.tsx
+    │   │   │   ├── InputDataModal.tsx
+    │   │   │   ├── MetaDataCard.tsx
+    │   │   │   ├── NavBar.tsx
+    │   │   │   └── Test.tsx
+    │   │   └── list
+    │   │       ├── CreateModal.tsx
+    │   │       ├── List.tsx
+    │   │       └── SideTag.tsx
+    │   ├── login
+    │   │   ├── ForgetPasswordForm.tsx
+    │   │   ├── LoginForm
+    │   │   │   ├── FormLayout.tsx
+    │   │   │   ├── LoginForm.tsx
+    │   │   │   └── WechatForm.tsx
+    │   │   └── RegisterForm.tsx
+    │   ├── price
+    │   │   ├── ExtraPlan.tsx
+    │   │   ├── FAQ.tsx
+    │   │   ├── Points.tsx
+    │   │   └── Standard.tsx
+    │   └── toolkit
+    │       └── PluginCard.tsx
+    ├── pages
+    │   ├── 404.tsx
+    │   ├── _app.tsx
+    │   ├── _document.tsx
+    │   ├── _error.tsx
+    │   ├── account
+    │   │   ├── apikey.tsx
+    │   │   ├── bill
+    │   │   │   └── index.tsx
+    │   │   ├── index.tsx
+    │   │   ├── info
+    │   │   │   └── index.tsx
+    │   │   ├── inform.tsx
+    │   │   ├── model
+    │   │   │   └── index.tsx
+    │   │   ├── points7179.tsx
+    │   │   ├── promotion.tsx
+    │   │   ├── setting.tsx
+    │   │   ├── team
+    │   │   │   └── index.tsx
+    │   │   ├── thirdParty
+    │   │   │   └── index.tsx
+    │   │   └── usage
+    │   │       └── index.tsx
+    │   ├── api
+    │   │   ├── admin
+    │   │   │   ├── clearInvalidData.ts
+    │   │   │   ├── initv47.ts
+    │   │   │   ├── initv471.ts
+    │   │   │   ├── initv481.ts
+    │   │   │   ├── initv4810.ts
+    │   │   │   ├── initv4815.ts
+    │   │   │   ├── initv4817.ts
+    │   │   │   ├── initv4818.ts
+    │   │   │   ├── initv4819.ts
+    │   │   │   ├── initv4820.ts
+    │   │   │   ├── initv485.ts
+    │   │   │   ├── initv486.ts
+    │   │   │   ├── initv488.ts
+    │   │   │   └── resetMilvus.ts
+    │   │   ├── common
+    │   │   │   ├── file
+    │   │   │   │   ├── previewContent.ts
+    │   │   │   │   ├── read
+    │   │   │   │   │   └── [filename].ts
+    │   │   │   │   ├── read.ts
+    │   │   │   │   ├── upload.ts
+    │   │   │   │   └── uploadImage.ts
+    │   │   │   ├── system
+    │   │   │   │   ├── getInitData.ts
+    │   │   │   │   ├── unlockTask.ts
+    │   │   │   │   └── writefile.ts
+    │   │   │   ├── tools
+    │   │   │   │   └── urlFetch.ts
+    │   │   │   └── tracks
+    │   │   │       └── push.ts
+    │   │   ├── core
+    │   │   │   ├── ai
+    │   │   │   │   ├── agent
+    │   │   │   │   │   ├── createQuestionGuide.ts
+    │   │   │   │   │   └── v2
+    │   │   │   │   │       └── createQuestionGuide.ts
+    │   │   │   │   ├── model
+    │   │   │   │   │   ├── delete.ts
+    │   │   │   │   │   ├── detail.ts
+    │   │   │   │   │   ├── getConfigJson.ts
+    │   │   │   │   │   ├── getDefaultConfig.ts
+    │   │   │   │   │   ├── list.ts
+    │   │   │   │   │   ├── test.ts
+    │   │   │   │   │   ├── update.ts
+    │   │   │   │   │   ├── updateDefault.ts
+    │   │   │   │   │   └── updateWithJson.ts
+    │   │   │   │   └── token.ts
+    │   │   │   ├── app
+    │   │   │   │   ├── copy.ts
+    │   │   │   │   ├── create.ts
+    │   │   │   │   ├── del.ts
+    │   │   │   │   ├── detail.ts
+    │   │   │   │   ├── exportChatLogs.ts
+    │   │   │   │   ├── folder
+    │   │   │   │   │   ├── create.ts
+    │   │   │   │   │   └── path.ts
+    │   │   │   │   ├── getChatLogs.ts
+    │   │   │   │   ├── httpPlugin
+    │   │   │   │   │   ├── create.ts
+    │   │   │   │   │   ├── getApiSchemaByUrl.ts
+    │   │   │   │   │   └── update.ts
+    │   │   │   │   ├── list.ts
+    │   │   │   │   ├── plugin
+    │   │   │   │   │   ├── getPreviewNode.ts
+    │   │   │   │   │   ├── getSystemPluginTemplates.ts
+    │   │   │   │   │   └── path.ts
+    │   │   │   │   ├── resumeInheritPermission.ts
+    │   │   │   │   ├── template
+    │   │   │   │   │   ├── detail.ts
+    │   │   │   │   │   └── list.ts
+    │   │   │   │   ├── transitionWorkflow.ts
+    │   │   │   │   ├── update.ts
+    │   │   │   │   └── version
+    │   │   │   │       ├── detail.ts
+    │   │   │   │       ├── latest.ts
+    │   │   │   │       ├── list.ts
+    │   │   │   │       ├── publish.ts
+    │   │   │   │       └── update.ts
+    │   │   │   ├── chat
+    │   │   │   │   ├── chatTest.ts
+    │   │   │   │   ├── clearHistories.ts
+    │   │   │   │   ├── delHistory.ts
+    │   │   │   │   ├── feedback
+    │   │   │   │   │   ├── adminUpdate.ts
+    │   │   │   │   │   ├── closeCustom.ts
+    │   │   │   │   │   └── updateUserFeedback.ts
+    │   │   │   │   ├── getHistories.ts
+    │   │   │   │   ├── getPaginationRecords.ts
+    │   │   │   │   ├── getResData.ts
+    │   │   │   │   ├── init.ts
+    │   │   │   │   ├── inputGuide
+    │   │   │   │   │   ├── countTotal.ts
+    │   │   │   │   │   ├── create.ts
+    │   │   │   │   │   ├── delete.ts
+    │   │   │   │   │   ├── deleteAll.ts
+    │   │   │   │   │   ├── list.ts
+    │   │   │   │   │   ├── query.ts
+    │   │   │   │   │   └── update.ts
+    │   │   │   │   ├── item
+    │   │   │   │   │   ├── delete.ts
+    │   │   │   │   │   └── getSpeech.ts
+    │   │   │   │   ├── outLink
+    │   │   │   │   │   └── init.ts
+    │   │   │   │   ├── team
+    │   │   │   │   │   └── init.ts
+    │   │   │   │   └── updateHistory.ts
+    │   │   │   ├── dataset
+    │   │   │   │   ├── allDataset.ts
+    │   │   │   │   ├── apiDataset
+    │   │   │   │   │   ├── list.ts
+    │   │   │   │   │   └── listExistId.ts
+    │   │   │   │   ├── collection
+    │   │   │   │   │   ├── create
+    │   │   │   │   │   │   ├── apiCollection.ts
+    │   │   │   │   │   │   ├── csvTable.ts
+    │   │   │   │   │   │   ├── fileId.ts
+    │   │   │   │   │   │   ├── link.ts
+    │   │   │   │   │   │   ├── localFile.ts
+    │   │   │   │   │   │   ├── reTrainingCollection.ts
+    │   │   │   │   │   │   └── text.ts
+    │   │   │   │   │   ├── create.ts
+    │   │   │   │   │   ├── delete.ts
+    │   │   │   │   │   ├── detail.ts
+    │   │   │   │   │   ├── list.ts
+    │   │   │   │   │   ├── listV2.ts
+    │   │   │   │   │   ├── paths.ts
+    │   │   │   │   │   ├── read.ts
+    │   │   │   │   │   ├── scrollList.ts
+    │   │   │   │   │   ├── sync.ts
+    │   │   │   │   │   └── update.ts
+    │   │   │   │   ├── create.ts
+    │   │   │   │   ├── data
+    │   │   │   │   │   ├── delete.ts
+    │   │   │   │   │   ├── detail.ts
+    │   │   │   │   │   ├── getQuoteData.ts
+    │   │   │   │   │   ├── insertData.ts
+    │   │   │   │   │   ├── list.ts
+    │   │   │   │   │   ├── pushData.ts
+    │   │   │   │   │   ├── update.ts
+    │   │   │   │   │   └── v2
+    │   │   │   │   │       └── list.ts
+    │   │   │   │   ├── delete.ts
+    │   │   │   │   ├── detail.ts
+    │   │   │   │   ├── exportAll.ts
+    │   │   │   │   ├── file
+    │   │   │   │   │   └── getPreviewChunks.ts
+    │   │   │   │   ├── folder
+    │   │   │   │   │   └── create.ts
+    │   │   │   │   ├── list.ts
+    │   │   │   │   ├── paths.ts
+    │   │   │   │   ├── resumeInheritPermission.ts
+    │   │   │   │   ├── searchTest.ts
+    │   │   │   │   ├── training
+    │   │   │   │   │   ├── getDatasetTrainingQueue.ts
+    │   │   │   │   │   ├── getQueueLen.ts
+    │   │   │   │   │   └── rebuildEmbedding.ts
+    │   │   │   │   └── update.ts
+    │   │   │   └── workflow
+    │   │   │       └── debug.ts
+    │   │   ├── lafApi
+    │   │   │   └── [...path].ts
+    │   │   ├── plugins
+    │   │   │   ├── TFSwitch
+    │   │   │   │   └── index.ts
+    │   │   │   ├── customFeedback
+    │   │   │   │   ├── index.ts
+    │   │   │   │   └── v2
+    │   │   │   │       └── index.ts
+    │   │   │   └── textEditor
+    │   │   │       ├── index.ts
+    │   │   │       └── v2
+    │   │   │           └── index.ts
+    │   │   ├── proApi
+    │   │   │   └── [...path].ts
+    │   │   ├── support
+    │   │   │   ├── openapi
+    │   │   │   │   ├── create.ts
+    │   │   │   │   ├── delete.ts
+    │   │   │   │   ├── list.ts
+    │   │   │   │   └── update.ts
+    │   │   │   ├── outLink
+    │   │   │   │   ├── create.ts
+    │   │   │   │   ├── delete.ts
+    │   │   │   │   ├── dingtalk
+    │   │   │   │   │   └── [token].ts
+    │   │   │   │   ├── feishu
+    │   │   │   │   │   └── [token].ts
+    │   │   │   │   ├── list.ts
+    │   │   │   │   ├── offiaccount
+    │   │   │   │   │   └── [token].ts
+    │   │   │   │   ├── update.ts
+    │   │   │   │   └── wecom
+    │   │   │   │       └── [token].ts
+    │   │   │   ├── user
+    │   │   │   │   ├── account
+    │   │   │   │   │   ├── loginByPassword.ts
+    │   │   │   │   │   ├── loginout.ts
+    │   │   │   │   │   ├── tokenLogin.ts
+    │   │   │   │   │   ├── update.ts
+    │   │   │   │   │   └── updatePasswordByOld.ts
+    │   │   │   │   ├── points
+    │   │   │   │   │   └── consume.ts
+    │   │   │   │   └── team
+    │   │   │   │       ├── limit
+    │   │   │   │       │   ├── datasetSizeLimit.ts
+    │   │   │   │       │   ├── exportDatasetLimit.ts
+    │   │   │   │       │   └── webSyncLimit.ts
+    │   │   │   │       ├── plan
+    │   │   │   │       │   └── getTeamPlanStatus.ts
+    │   │   │   │       ├── tag
+    │   │   │   │       │   └── list.ts
+    │   │   │   │       ├── thirtdParty
+    │   │   │   │       │   └── checkUsage.ts
+    │   │   │   │       └── update.ts
+    │   │   │   └── wallet
+    │   │   │       └── usage
+    │   │   │           └── createTrainingUsage.ts
+    │   │   ├── system
+    │   │   │   └── img
+    │   │   │       └── [id].ts
+    │   │   └── v1
+    │   │       ├── audio
+    │   │       │   └── transcriptions.ts
+    │   │       ├── chat
+    │   │       │   └── completions.ts
+    │   │       └── embeddings.ts
+    │   ├── app
+    │   │   ├── detail
+    │   │   │   └── index.tsx
+    │   │   └── list
+    │   │       └── index.tsx
+    │   ├── chat
+    │   │   ├── index.tsx
+    │   │   ├── share.tsx
+    │   │   └── team.tsx
+    │   ├── dataset
+    │   │   ├── detail
+    │   │   │   └── index.tsx
+    │   │   └── list
+    │   │       ├── context.tsx
+    │   │       └── index.tsx
+    │   ├── index.tsx
+    │   ├── login
+    │   │   ├── fastlogin.tsx
+    │   │   ├── index.tsx
+    │   │   └── provider.tsx
+    │   ├── more
+    │   │   └── index.tsx
+    │   ├── price
+    │   │   └── index.tsx
+    │   ├── register
+    │   │   ├── components
+    │   │   │   └── RegisterForm.tsx
+    │   │   └── index.tsx
+    │   └── toolkit
+    │       └── index.tsx
+    ├── service
+    │   ├── common
+    │   │   ├── frequencyLimit
+    │   │   │   └── api.ts
+    │   │   └── system
+    │   │       ├── cron.ts
+    │   │       ├── cronTask.ts
+    │   │       ├── index.ts
+    │   │       └── volumnMongoWatch.ts
+    │   ├── core
+    │   │   ├── ai
+    │   │   │   ├── apiproxy.d.ts
+    │   │   │   └── apiproxy.ts
+    │   │   ├── app
+    │   │   │   ├── plugin.ts
+    │   │   │   ├── utils.ts
+    │   │   │   └── workflow.ts
+    │   │   └── dataset
+    │   │       ├── apiDataset
+    │   │       │   └── controller.ts
+    │   │       ├── data
+    │   │       │   ├── controller.ts
+    │   │       │   └── utils.ts
+    │   │       └── training
+    │   │           └── utils.ts
+    │   ├── events
+    │   │   ├── generateQA.ts
+    │   │   ├── generateVector.ts
+    │   │   └── utils.ts
+    │   ├── middleware
+    │   │   └── entry.ts
+    │   ├── mongo.ts
+    │   └── support
+    │       ├── permission
+    │       │   └── auth
+    │       │       ├── chat.ts
+    │       │       ├── outLink.ts
+    │       │       └── team.ts
+    │       ├── user
+    │       │   └── inform
+    │       │       └── api.ts
+    │       └── wallet
+    │           ├── sub
+    │           │   └── utils.ts
+    │           └── usage
+    │               ├── controller.ts
+    │               ├── push.ts
+    │               └── utils.ts
+    ├── types
+    │   ├── app.d.ts
+    │   ├── chat.d.ts
+    │   ├── common
+    │   │   └── file.d.ts
+    │   ├── index.d.ts
+    │   └── user.d.ts
+    └── web
+        ├── common
+        │   ├── api
+        │   │   ├── fetch.ts
+        │   │   ├── lafRequest.ts
+        │   │   └── request.ts
+        │   ├── file
+        │   │   ├── api.ts
+        │   │   ├── controller.ts
+        │   │   ├── hooks
+        │   │   │   └── useSelectFile.tsx
+        │   │   └── utils.ts
+        │   ├── hooks
+        │   │   ├── useEditTitle.tsx
+        │   │   ├── useMarkdown.ts
+        │   │   ├── useRequest.tsx
+        │   │   ├── useSpeech.ts
+        │   │   └── useSticky.ts
+        │   ├── middle
+        │   │   └── tracks
+        │   │       └── utils.ts
+        │   ├── system
+        │   │   ├── api.ts
+        │   │   ├── constants.ts
+        │   │   ├── doc.ts
+        │   │   ├── staticData.ts
+        │   │   ├── useSystemStore.ts
+        │   │   └── utils.ts
+        │   ├── tools
+        │   │   └── api.ts
+        │   └── utils
+        │       ├── eventbus.ts
+        │       ├── i18n.ts
+        │       └── voice.ts
+        ├── context
+        │   ├── ChakraUI.tsx
+        │   ├── I18n.tsx
+        │   ├── QueryClient.tsx
+        │   └── useInitApp.ts
+        ├── core
+        │   ├── ai
+        │   │   ├── api.ts
+        │   │   └── config.ts
+        │   ├── app
+        │   │   ├── api
+        │   │   │   ├── app.ts
+        │   │   │   ├── collaborator.ts
+        │   │   │   ├── plugin.ts
+        │   │   │   ├── template.ts
+        │   │   │   └── version.ts
+        │   │   ├── api.ts
+        │   │   ├── constants.ts
+        │   │   ├── diff.ts
+        │   │   ├── templates.ts
+        │   │   └── utils.ts
+        │   ├── chat
+        │   │   ├── api.ts
+        │   │   ├── constants.ts
+        │   │   ├── context
+        │   │   │   ├── chatContext.tsx
+        │   │   │   ├── chatItemContext.tsx
+        │   │   │   ├── chatRecordContext.tsx
+        │   │   │   └── useChatStore.ts
+        │   │   ├── inputGuide
+        │   │   │   └── api.ts
+        │   │   ├── storeShareChat.ts
+        │   │   └── utils.ts
+        │   ├── dataset
+        │   │   ├── api
+        │   │   │   └── collaborator.ts
+        │   │   ├── api.ts
+        │   │   ├── components
+        │   │   │   └── SelectCollections.tsx
+        │   │   ├── constants.ts
+        │   │   ├── context
+        │   │   │   ├── datasetPageContext.tsx
+        │   │   │   └── datasetsContext.tsx
+        │   │   ├── hooks
+        │   │   │   └── readCollectionSource.ts
+        │   │   ├── store
+        │   │   │   ├── dataset.ts
+        │   │   │   ├── markdata.ts
+        │   │   │   └── searchTest.ts
+        │   │   └── type.d.ts
+        │   └── workflow
+        │       ├── adapt.ts
+        │       ├── api.ts
+        │       └── utils.ts
+        └── support
+            ├── activity
+            │   └── promotion
+            │       └── api.ts
+            ├── laf
+            │   └── api.ts
+            ├── openapi
+            │   └── api.ts
+            ├── outLink
+            │   └── api.ts
+            ├── user
+            │   ├── api.ts
+            │   ├── auth.ts
+            │   ├── hooks
+            │   │   └── useSendCode.tsx
+            │   ├── inform
+            │   │   └── api.ts
+            │   ├── login
+            │   │   └── constants.ts
+            │   ├── team
+            │   │   ├── api.ts
+            │   │   ├── group
+            │   │   │   └── api.ts
+            │   │   └── org
+            │   │       └── api.ts
+            │   └── useUserStore.ts
+            └── wallet
+                ├── bill
+                │   ├── api.ts
+                │   └── invoice
+                │       └── api.ts
+                ├── sub
+                │   └── constants.ts
+                └── usage
+                    └── api.ts
+
+278 directories, 586 files
