@@ -1,0 +1,2 @@
+打开网站，自动访问前端自动访问/api/support/user/inform/countUnread接口，
+但proApi项目还未实现countUnread接口，所以根据本项目中的源码，通过逆向工程推测出countUnread接口规范。
