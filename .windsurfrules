@@ -1,0 +1,9 @@
+- **核心框架**: Next.js + TypeScript + ChakraUI 构建前后端一体化架构 
+- **数据库架构**: MongoDB (业务数据) + PostgreSQL/PG Vector (向量存储) 双引擎设计  
+- **Node.js**: v18.17.1
+- **文档**: https://doc.tryfastgpt.ai/docs/intro
+- **主要目标**: 在开源版的基础上通过二次开发实现商业版的功能
+- **商业版特点**: 开源版只适合单用户使用，设置proApi后，可以实现多用户使用，包括“用户、部门、群组”的管理，以及为知识库、应用设置不同的访问权限
+- **proApi调用机制**：前端调用本项目的node server提供的api，node server调用外部的的proApi
+- **文件结构**：/tree-.*.txt (文件名中使用了正则表达式)
+- **启动方法**：cd /Users/adam/Sites/FG/projects/app && npm run dev
