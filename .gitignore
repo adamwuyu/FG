@@ -58,3 +58,5 @@ patches-v4/
 storageState.json
 playwright/storageState.json
 files/helm/fastgpt/values.yaml
+
+.windsurfrules
