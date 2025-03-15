@@ -59,7 +59,7 @@ function MemberModal({
     pageSize: 15
   });
 
-  const { data: [groups = [], orgs = []] = [], loading: loadingGroupsAndOrgs } = useRequest2(
+  const { data: groupsAndOrgs = [[], []], loading: loadingGroupsAndOrgs } = useRequest2(
     async () => {
       if (!userInfo?.team?.teamId) return [[], []];
       return Promise.all([getGroupList(), getOrgList()]);
@@ -69,6 +69,10 @@ function MemberModal({
       refreshDeps: [userInfo?.team?.teamId]
     }
   );
+
+  // 确保 groups 和 orgs 始终是数组
+  const groups = Array.isArray(groupsAndOrgs[0]) ? groupsAndOrgs[0] : [];
+  const orgs = Array.isArray(groupsAndOrgs[1]) ? groupsAndOrgs[1] : [];
 
   const [parentPath, setParentPath] = useState('');
 

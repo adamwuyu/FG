@@ -96,6 +96,9 @@ export const TeamModalContextProvider = ({ children }: { children: ReactNode }) 
     refreshDeps: [userInfo?.team?.teamId]
   });
 
+  // 确保 groups 始终是一个数组
+  const safeGroups = Array.isArray(groups) ? groups : [];
+
   const isLoading = isLoadingTeams || isSwitchingTeam || loadingMembers || isLoadingGroups;
 
   const contextValue = {
@@ -108,7 +111,7 @@ export const TeamModalContextProvider = ({ children }: { children: ReactNode }) 
     setEditTeamData,
     members,
     refetchMembers,
-    groups,
+    groups: safeGroups,
     refetchGroups,
     teamSize: memberTotal,
     MemberScrollData
