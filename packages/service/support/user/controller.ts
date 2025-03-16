@@ -41,12 +41,12 @@ export async function getUserDetail({
   return {
     _id: user._id,
     username: user.username,
-    avatar: tmb.avatar,
+    avatar: tmb?.avatar || '/icon/logo.svg', // 添加默认头像，防止tmb.avatar为null
     balance: user.balance, // Adam: 新增的字段，这里读出来
     timezone: user.timezone,
     promotionRate: user.promotionRate,
     team: tmb,
-    notificationAccount: tmb.notificationAccount,
-    permission: tmb.permission
+    notificationAccount: tmb?.notificationAccount,
+    permission: tmb?.permission
   };
 }

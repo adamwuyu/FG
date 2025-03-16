@@ -94,15 +94,17 @@
  L --> M
 ```
 
-## 数据库设计说明
+## 数据库调整说明
 
+> 不再使用team_collaborators表，统一使用resource_permissions表。resource_permissions表中增加`entityType` 和 `entityId` 字段，原因如下：
+>
 > **数据库设计方案**：我们采用了一种折衡方案，同时保留了原有的 `tmbId`、`groupId` 和 `orgId` 字段，并增加了 `entityType` 和 `entityId` 字段。
-> 
+>
 > **为什么这样设计**：
 > 1. 保留原有字段确保与 FastGPT 核心包的兼容性
 > 2. 新增 `entityType` 和 `entityId` 字段简化查询和业务逻辑
 > 3. 通过数据库中间件自动维护两组字段之间的数据一致性
-> 
+>
 > **数据关系**：
 > - 当 `entityType='user'` 时，`entityId` 对应 `tmbId`，其他两个字段为 `null`
 > - 当 `entityType='group'` 时，`entityId` 对应 `groupId`，其他两个字段为 `null`

@@ -35,14 +35,19 @@ async function getTeamMember(match: Record<string, any>): Promise<TeamTmbItemTyp
     tmbId: tmb._id
   });
 
+  // 确保tmb.team存在，如果不存在则使用默认值
+  if (!tmb.team) {
+    console.warn('Team not found for member', tmb._id);
+  }
+
   return {
     userId: String(tmb.userId),
     teamId: String(tmb.teamId),
-    teamAvatar: tmb.team.avatar,
-    teamName: tmb.team.name,
+    teamAvatar: tmb.team?.avatar || '/icon/logo.svg',
+    teamName: tmb.team?.name || 'Default Team',
     memberName: tmb.name,
     avatar: tmb.avatar,
-    balance: tmb.team.balance,
+    balance: tmb.team?.balance || 0,
     tmbId: String(tmb._id),
     teamDomain: tmb.team?.teamDomain,
     role: tmb.role,
@@ -52,11 +57,11 @@ async function getTeamMember(match: Record<string, any>): Promise<TeamTmbItemTyp
       per: Per ?? TeamDefaultPermissionVal,
       isOwner: tmb.role === TeamMemberRoleEnum.owner
     }),
-    notificationAccount: tmb.team.notificationAccount,
+    notificationAccount: tmb.team?.notificationAccount,
 
-    lafAccount: tmb.team.lafAccount,
-    openaiAccount: tmb.team.openaiAccount,
-    externalWorkflowVariables: tmb.team.externalWorkflowVariables
+    lafAccount: tmb.team?.lafAccount,
+    openaiAccount: tmb.team?.openaiAccount,
+    externalWorkflowVariables: tmb.team?.externalWorkflowVariables
   };
 }
 
