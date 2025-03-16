@@ -21,9 +21,9 @@ const Register = () => {
       {loading ? (
         <Loading fixed={false} />
       ) : (
-        <RegisterForm 
+        <RegisterForm
           // @ts-ignore
-          setPageType={() => {}} 
+          setPageType={() => {}}
           loginSuccess={() => {
             window.location.href = '/login';
             return null;
