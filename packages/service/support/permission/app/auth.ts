@@ -170,9 +170,20 @@ export const authApp = async ({
   // 补丁0021: 获取用户所属团队标签
   const tmbTeams = await MongoTeamMember.find({ userId }).populate('teamId', 'name');
   // tmbTeams的结构是：[teamId: { name: '组1' },teamId: { name: '组2' }]，提取其中的name组成新数组['组1','组2']
-  // @ts-ignore
-  const tmbTeamNames = tmbTeams.map((item) => item.teamId.name);
+  // 添加空值检查，防止访问null对象的name属性
+  const tmbTeamNames = tmbTeams
+    .filter((item) => item.teamId && typeof item.teamId === 'object' && item.teamId.name) // 过滤掉teamId为null或没有name属性的记录
+    .map((item) => {
+      // 确保teamId是对象且有name属性
+      if (typeof item.teamId === 'object' && item.teamId.name) {
+        return item.teamId.name;
+      }
+      return '';
+    })
+    .filter(Boolean); // 过滤掉空字符串
   const tagKeys = await MongoTeamTags.find({ label: { $in: tmbTeamNames } }).distinct('key');
+
+  console.log('\n\ntagKeys', tagKeys);
 
   // 确保 appId 是 string 类型
   if (typeof appId === 'string') {
