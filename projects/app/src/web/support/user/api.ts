@@ -23,11 +23,20 @@ export const sendAuthCode = (data: {
 
 export const getTokenLogin = () =>
   GET<UserType>('/support/user/account/tokenLogin', {}, { maxQuantity: 1 });
+// 处理登录响应，存储JWT令牌
+function handleLoginResponse(response: ResLogin) {
+  if (response.token) {
+    localStorage.setItem('jwt_token', response.token);
+  }
+  return response;
+}
+
 export const oauthLogin = (params: OauthLoginProps) =>
-  POST<ResLogin>('/proApi/support/user/account/login/oauth', params);
+  POST<ResLogin>('/proApi/support/user/account/login/oauth', params).then(handleLoginResponse);
 export const postFastLogin = (params: FastLoginProps) =>
-  POST<ResLogin>('/proApi/support/user/account/login/fastLogin', params);
-export const ssoLogin = (params: any) => GET<ResLogin>('/proApi/support/user/account/sso', params);
+  POST<ResLogin>('/proApi/support/user/account/login/fastLogin', params).then(handleLoginResponse);
+export const ssoLogin = (params: any) =>
+  GET<ResLogin>('/proApi/support/user/account/sso', params).then(handleLoginResponse);
 
 export const postRegister = ({
   username,
@@ -44,7 +53,7 @@ export const postRegister = ({
     bd_vid,
     fastgpt_sem,
     password: hashStr(password)
-  });
+  }).then(handleLoginResponse);
 
 export const postFindPassword = ({
   username,
@@ -74,9 +83,13 @@ export const postLogin = ({ password, ...props }: PostLoginProps) =>
   POST<ResLogin>('/support/user/account/loginByPassword', {
     ...props,
     password: hashStr(password)
-  });
+  }).then(handleLoginResponse);
 
-export const loginOut = () => GET('/support/user/account/loginout');
+export const loginOut = () => {
+  // 清除JWT令牌
+  localStorage.removeItem('jwt_token');
+  return GET('/support/user/account/loginout');
+};
 
 export const putUserInfo = (data: UserUpdateParams) => PUT('/support/user/account/update', data);
 
@@ -84,7 +97,9 @@ export const getWXLoginQR = () =>
   GET<GetWXLoginQRResponse>('/proApi/support/user/account/login/wx/getQR');
 
 export const getWXLoginResult = (code: string) =>
-  GET<ResLogin>(`/proApi/support/user/account/login/wx/getResult`, { code });
+  GET<ResLogin>(`/proApi/support/user/account/login/wx/getResult`, { code }).then(
+    handleLoginResponse
+  );
 
 export const getCaptchaPic = (username: string) =>
   GET<{

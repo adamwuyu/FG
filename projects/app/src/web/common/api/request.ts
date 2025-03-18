@@ -80,6 +80,14 @@ function requestFinish({ signId, url }: { signId?: string; url: string }) {
  */
 function startInterceptors(config: InternalAxiosRequestConfig): InternalAxiosRequestConfig {
   if (config.headers) {
+    // 检查是否为proApi请求
+    if (config.url && config.url.includes('proApi')) {
+      // 从localStorage获取JWT令牌
+      const token = localStorage.getItem('jwt_token');
+      if (token) {
+        config.headers['Authorization'] = `Bearer ${token}`;
+      }
+    }
   }
 
   return config;
@@ -131,6 +139,31 @@ function responseError(err: any) {
     }
 
     return Promise.reject({ message: i18nT('common:unauth_token') });
+  }
+
+  // 处理JWT认证错误
+  if (data?.code === 401) {
+    // 清除JWT令牌
+    localStorage.removeItem('jwt_token');
+
+    if (
+      data?.message === '未提供访问令牌' ||
+      data?.message === '无效的访问令牌' ||
+      data?.message === '访问令牌已过期' ||
+      data?.message === '用户不存在'
+    ) {
+      // 仅在非登录页面时重定向
+      if (!['/chat/share', '/chat/team', '/login'].includes(window.location.pathname)) {
+        clearToken();
+        window.location.replace(
+          getWebReqUrl(
+            `/login?lastRoute=${encodeURIComponent(location.pathname + location.search)}`
+          )
+        );
+      }
+
+      return Promise.reject({ message: i18nT('common:unauth_token') });
+    }
   }
   if (
     data?.statusText === TeamErrEnum.aiPointsNotEnough ||
