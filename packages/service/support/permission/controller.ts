@@ -218,7 +218,7 @@ export function createJWT(user: {
   team?: { teamId?: string; tmbId: string };
   isRoot?: boolean;
 }) {
-  const key = process.env.TOKEN_KEY as string;
+  const key = process.env.JWT_SECRET as string;
   const token = jwt.sign(
     {
       userId: String(user._id),
@@ -240,7 +240,7 @@ export function authJWT(token: string) {
     tmbId: string;
     isRoot: boolean;
   }>((resolve, reject) => {
-    const key = process.env.TOKEN_KEY as string;
+    const key = process.env.JWT_SECRET as string;
 
     jwt.verify(token, key, (err, decoded: any) => {
       if (err || !decoded?.userId) {
