@@ -25,8 +25,15 @@ export const getTokenLogin = () =>
   GET<UserType>('/support/user/account/tokenLogin', {}, { maxQuantity: 1 });
 // 处理登录响应，存储JWT令牌
 function handleLoginResponse(response: ResLogin) {
+  console.log('登录响应:', response);
   if (response.token) {
+    console.log('设置 token:', response.token);
     localStorage.setItem('jwt_token', response.token);
+    // 验证是否成功保存
+    const savedToken = localStorage.getItem('jwt_token');
+    console.log('保存后的 token:', savedToken);
+  } else {
+    console.error('响应中没有 token:', response);
   }
   return response;
 }
@@ -79,11 +86,34 @@ export const updatePasswordByOld = ({ oldPsw, newPsw }: { oldPsw: string; newPsw
 export const updateNotificationAccount = (data: { account: string; verifyCode: string }) =>
   PUT('/proApi/support/user/team/updateNotificationAccount', data);
 
-export const postLogin = ({ password, ...props }: PostLoginProps) =>
-  POST<ResLogin>('/support/user/account/loginByPassword', {
+export const postLogin = ({ password, ...props }: PostLoginProps) => {
+  console.log('开始登录请求，参数:', { ...props, password: '******' });
+
+  return POST<ResLogin>('/support/user/account/loginByPassword', {
     ...props,
     password: hashStr(password)
-  }).then(handleLoginResponse);
+  })
+    .then((response) => {
+      console.log('登录请求响应:', response);
+
+      // 检查响应结构
+      if (!response) {
+        console.error('响应为空');
+        return response;
+      }
+
+      // 注意: POST 函数已经通过 checkRes 提取了 data.data
+      // 所以 response 应该已经是 { token, user } 格式
+      console.log('处理登录响应:', response);
+
+      // 直接将响应传递给 handleLoginResponse 函数
+      return handleLoginResponse(response);
+    })
+    .catch((error) => {
+      console.error('登录请求出错:', error);
+      throw error;
+    });
+};
 
 export const loginOut = () => {
   // 清除JWT令牌
