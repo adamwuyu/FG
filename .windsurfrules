@@ -7,3 +7,5 @@
 - **proApi调用机制**：前端调用本项目的node server提供的api，node server调用外部的的proApi(http://localhost:3002/api/...)
 - **文件结构**：/tree-.*.txt (文件名中使用了正则表达式)
 - **启动方法**：cd /Users/adam/Sites/FG/projects/app && npm run dev
+- **在开始编辑前，先跟我确认你要做什么**
+- **如果需要查找文件，尤其.env.local中的内容，可以问我，不要浪费token**
