@@ -111,3 +111,12 @@ export const postSyncMembers = () => POST('/proApi/support/user/team/org/sync');
 // Adam: 封装积分改动
 export const consume = ({ userId, points }: { userId: string; points: number }) =>
   POST('/support/user/points/consume', { userId, points });
+
+// 刷新JWT令牌
+export const refreshToken = () =>
+  GET<{ token: string }>('/proApi/support/user/account/refreshToken').then((response) => {
+    if (response.token) {
+      localStorage.setItem('jwt_token', response.token);
+    }
+    return response;
+  });

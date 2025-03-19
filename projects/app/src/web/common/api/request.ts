@@ -11,6 +11,77 @@ import { useSystemStore } from '../system/useSystemStore';
 import { getWebReqUrl } from '@fastgpt/web/common/system/utils';
 import { i18nT } from '@fastgpt/web/i18n/utils';
 import { getNanoid } from '@fastgpt/global/common/string/tools';
+import { refreshToken } from '@/web/support/user/api';
+
+// 检查令牌是否即将过期
+function isTokenExpiringSoon() {
+  try {
+    const token = localStorage.getItem('jwt_token');
+    if (!token) return false;
+
+    // 解析JWT令牌
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const jsonPayload = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
+        .join('')
+    );
+
+    const { exp } = JSON.parse(jsonPayload);
+    if (!exp) return false;
+
+    // 如果令牌在30分钟内过期，则返回true
+    const expiresIn = exp - Math.floor(Date.now() / 1000);
+    return expiresIn > 0 && expiresIn < 30 * 60; // 30分钟
+  } catch (error) {
+    console.error('检查令牌过期时间出错', error);
+    return false;
+  }
+}
+
+// 刷新令牌
+let isRefreshing = false;
+let failedQueue: { resolve: Function; reject: Function }[] = [];
+
+function processQueue(error: any, token: string | null = null) {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+
+  failedQueue = [];
+}
+
+function handleTokenRefresh() {
+  if (isRefreshing) {
+    // 如果正在刷新，返回一个待处理的Promise
+    return new Promise((resolve, reject) => {
+      failedQueue.push({ resolve, reject });
+    });
+  }
+
+  isRefreshing = true;
+
+  // 刷新令牌
+  return refreshToken()
+    .then((response) => {
+      const newToken = response.token;
+      processQueue(null, newToken);
+      return newToken;
+    })
+    .catch((error) => {
+      processQueue(error);
+      throw error;
+    })
+    .finally(() => {
+      isRefreshing = false;
+    });
+}
 
 interface ConfigType {
   headers?: { [key: string]: string };
@@ -82,10 +153,31 @@ function startInterceptors(config: InternalAxiosRequestConfig): InternalAxiosReq
   if (config.headers) {
     // 检查是否为proApi请求
     if (config.url && config.url.includes('proApi')) {
-      // 从localStorage获取JWT令牌
-      const token = localStorage.getItem('jwt_token');
-      if (token) {
-        config.headers['Authorization'] = `Bearer ${token}`;
+      // 检查令牌是否即将过期
+      if (isTokenExpiringSoon() && !config.url.includes('/refreshToken')) {
+        // 如果令牌即将过期且不是刷新令牌的请求，则先刷新令牌
+        return handleTokenRefresh()
+          .then((newToken) => {
+            // 使用新令牌
+            if (newToken && config.headers) {
+              config.headers['Authorization'] = `Bearer ${newToken}`;
+            }
+            return config;
+          })
+          .catch(() => {
+            // 刷新失败时仍然使用原有令牌
+            const token = localStorage.getItem('jwt_token');
+            if (token && config.headers) {
+              config.headers['Authorization'] = `Bearer ${token}`;
+            }
+            return config;
+          }) as any;
+      } else {
+        // 从localStorage获取JWT令牌
+        const token = localStorage.getItem('jwt_token');
+        if (token) {
+          config.headers['Authorization'] = `Bearer ${token}`;
+        }
       }
     }
   }
@@ -143,15 +235,49 @@ function responseError(err: any) {
 
   // 处理JWT认证错误
   if (data?.code === 401) {
-    // 清除JWT令牌
-    localStorage.removeItem('jwt_token');
+    // 检查是否是令牌过期错误
+    if (data?.message === '访问令牌已过期') {
+      // 尝试刷新令牌
+      return handleTokenRefresh()
+        .then(() => {
+          // 令牌刷新成功，重试原始请求
+          const config = err.config;
+          // 确保不会进入无限循环
+          config._retry = true;
 
-    if (
+          // 使用新令牌更新请求头
+          const token = localStorage.getItem('jwt_token');
+          if (token && config.headers) {
+            config.headers['Authorization'] = `Bearer ${token}`;
+          }
+
+          // 重新发送请求
+          return axios(config);
+        })
+        .catch(() => {
+          // 令牌刷新失败，清除令牌并重定向到登录页面
+          localStorage.removeItem('jwt_token');
+
+          // 仅在非登录页面时重定向
+          if (!['/chat/share', '/chat/team', '/login'].includes(window.location.pathname)) {
+            clearToken();
+            window.location.replace(
+              getWebReqUrl(
+                `/login?lastRoute=${encodeURIComponent(location.pathname + location.search)}`
+              )
+            );
+          }
+
+          return Promise.reject({ message: i18nT('common:unauth_token') });
+        });
+    } else if (
       data?.message === '未提供访问令牌' ||
       data?.message === '无效的访问令牌' ||
-      data?.message === '访问令牌已过期' ||
       data?.message === '用户不存在'
     ) {
+      // 清除JWT令牌
+      localStorage.removeItem('jwt_token');
+
       // 仅在非登录页面时重定向
       if (!['/chat/share', '/chat/team', '/login'].includes(window.location.pathname)) {
         clearToken();
