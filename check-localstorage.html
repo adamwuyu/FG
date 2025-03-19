@@ -41,12 +41,15 @@
     <button id="checkToken">检查 JWT Token</button>
     <button id="checkAll">检查所有 localStorage 项</button>
     <button id="clearToken">清除 JWT Token</button>
+    <button id="setTestToken">设置测试 Token</button>
+    <button id="parseToken">解析 Token</button>
+    <button id="checkStorage">检查 localStorage 可用性</button>
     
     <div id="output">
         <h3>输出结果：</h3>
         <pre id="result">点击上方按钮查看结果</pre>
     </div>
-
+    
     <script>
         document.getElementById('checkToken').addEventListener('click', function() {
             const token = localStorage.getItem('jwt_token');
@@ -94,6 +97,98 @@
         document.getElementById('clearToken').addEventListener('click', function() {
             localStorage.removeItem('jwt_token');
             document.getElementById('result').textContent = 'JWT Token 已清除';
+        });
+        
+        document.getElementById('setTestToken').addEventListener('click', function() {
+            const testToken = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0ZXN0IjoidmFsdWUifQ.FG-VjqUOhBrPi5AzXQW9hHRdM-QKnxHUOvUYfUOt5jM';
+            try {
+                localStorage.setItem('jwt_token', testToken);
+                const savedToken = localStorage.getItem('jwt_token');
+                if (savedToken === testToken) {
+                    document.getElementById('result').textContent = `测试 Token 设置成功: ${savedToken}`;
+                } else {
+                    document.getElementById('result').textContent = `测试 Token 设置失败, 保存的值: ${savedToken}`;
+                }
+            } catch (error) {
+                document.getElementById('result').textContent = `设置 Token 时出错: ${error.message}`;
+            }
+        });
+        
+        document.getElementById('parseToken').addEventListener('click', function() {
+            const token = localStorage.getItem('jwt_token');
+            const result = document.getElementById('result');
+            if (!token) {
+                result.textContent = '没有找到 JWT Token';
+                return;
+            }
+            
+            try {
+                const parts = token.split('.');
+                if (parts.length !== 3) {
+                    result.textContent = '无效的 JWT Token 格式';
+                    return;
+                }
+                
+                const header = JSON.parse(atob(parts[0]));
+                const payload = JSON.parse(atob(parts[1]));
+                
+                result.textContent = `JWT Token 解析结果:
+
+头部: ${JSON.stringify(header, null, 2)}
+
+载荷: ${JSON.stringify(payload, null, 2)}`;
+            } catch (error) {
+                result.textContent = `解析 Token 时出错: ${error.message}`;
+            }
+        });
+        
+        document.getElementById('checkStorage').addEventListener('click', function() {
+            const result = document.getElementById('result');
+            let output = '';
+            
+            // 检查 localStorage 是否可用
+            output += `localStorage 类型: ${typeof localStorage}
+`;
+            
+            try {
+                // 尝试设置一个测试值
+                localStorage.setItem('test_storage', 'test_value');
+                const testValue = localStorage.getItem('test_storage');
+                output += `测试值设置结果: ${testValue === 'test_value' ? '成功' : '失败'}
+`;
+                output += `读取的测试值: ${testValue}
+`;
+                localStorage.removeItem('test_storage');
+                
+                // 检查 localStorage 容量
+                output += `localStorage 当前项数: ${localStorage.length}
+`;
+                
+                // 检查浏览器存储限制
+                let testData = '';
+                let i = 0;
+                try {
+                    // 尝试存储小量数据以避免浏览器崩溃
+                    for (i = 0; i < 3; i++) {
+                        testData += new Array(1024).join('a'); // 每次增加约 1KB
+                        localStorage.setItem('test_large_data', testData);
+                    }
+                    output += `存储测试: 成功存储 ${i}KB 数据
+`;
+                } catch (e) {
+                    output += `存储限制测试: 在存储约 ${i}KB 数据时失败
+`;
+                    output += `错误: ${e.message}
+`;
+                } finally {
+                    localStorage.removeItem('test_large_data');
+                }
+            } catch (error) {
+                output += `localStorage 测试出错: ${error.message}
+`;
+            }
+            
+            result.textContent = output;
         });
     </script>
 </body>
