@@ -211,52 +211,13 @@ export const delResourcePermission = ({
   );
 };
 
-/* 下面代码等迁移 */
-/* create token */
-export function createJWT(user: {
-  _id?: string;
-  team?: { teamId?: string; tmbId: string };
-  isRoot?: boolean;
-}) {
-  const key = process.env.JWT_SECRET as string;
-  const token = jwt.sign(
-    {
-      userId: String(user._id),
-      teamId: String(user.team?.teamId),
-      tmbId: String(user.team?.tmbId),
-      isRoot: user.isRoot,
-      exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 7
-    },
-    key
-  );
-  return token;
-}
-
-// auth token
-export function authJWT(token: string) {
-  return new Promise<{
-    userId: string;
-    teamId: string;
-    tmbId: string;
-    isRoot: boolean;
-  }>((resolve, reject) => {
-    const key = process.env.JWT_SECRET as string;
-
-    jwt.verify(token, key, (err, decoded: any) => {
-      if (err || !decoded?.userId) {
-        reject(ERROR_ENUM.unAuthorization);
-        return;
-      }
-
-      resolve({
-        userId: decoded.userId,
-        teamId: decoded.teamId || '',
-        tmbId: decoded.tmbId,
-        isRoot: decoded.isRoot
-      });
-    });
-  });
-}
+/* 
+  注意：JWT 令牌的创建和验证应该由 proApi 服务处理
+  本项目只负责获取、存储和转发令牌
+  以下函数已被移除：
+  - createJWT
+  - authJWT
+*/
 
 export async function parseHeaderCert({
   req,
@@ -274,7 +235,9 @@ export async function parseHeaderCert({
       return Promise.reject(ERROR_ENUM.unAuthorization);
     }
 
-    return await authJWT(cookieToken);
+    // 注意: JWT 令牌的验证应该由 proApi 服务处理
+    // 本项目不再支持直接验证 JWT 令牌
+    return Promise.reject(ERROR_ENUM.unAuthorization);
   }
   // from authorization get apikey
   async function parseAuthorization(authorization?: string) {
@@ -343,16 +306,16 @@ export async function parseHeaderCert({
       }
       if (authToken && (token || cookie)) {
         // user token(from fastgpt web)
-        const res = await authCookieToken(cookie, token);
-        return {
-          uid: res.userId,
-          teamId: res.teamId,
-          tmbId: res.tmbId,
-          appId: '',
-          openApiKey: '',
-          authType: AuthUserTypeEnum.token,
-          isRoot: res.isRoot
-        };
+        // 注意：本地接口不再支持 JWT 认证，这里会直接拒绝请求
+        // 所有需要 JWT 认证的请求应该通过 proApi 路由处理
+        try {
+          await authCookieToken(cookie, token);
+          // 这里不会执行，因为 authCookieToken 总是会拒绝请求
+          return {} as any;
+        } catch (error) {
+          // 直接抛出错误，中断认证流程
+          throw ERROR_ENUM.unAuthorization;
+        }
       }
       if (authRoot && rootkey) {
         await parseRootKey(rootkey);
