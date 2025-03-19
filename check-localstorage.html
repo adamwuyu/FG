@@ -38,9 +38,9 @@
 <body>
     <h1>检查 localStorage</h1>
     
-    <button id="checkToken">检查 JWT Token</button>
+    <button id="checkToken">检查 jwt_token</button>
     <button id="checkAll">检查所有 localStorage 项</button>
-    <button id="clearToken">清除 JWT Token</button>
+    <button id="clearToken">清除 jwt_token</button>
     <button id="setTestToken">设置测试 Token</button>
     <button id="parseToken">解析 Token</button>
     <button id="checkStorage">检查 localStorage 可用性</button>
@@ -56,9 +56,9 @@
             const resultElement = document.getElementById('result');
             
             if (token) {
-                resultElement.textContent = 'JWT Token 存在：\n' + token;
+                resultElement.textContent = 'jwt_token 存在：\n' + token;
                 
-                // 解析 JWT Token
+                // 解析 jwt_token
                 try {
                     const base64Url = token.split('.')[1];
                     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
@@ -71,7 +71,7 @@
                     resultElement.textContent += '\n\n无法解析 Token: ' + e.message;
                 }
             } else {
-                resultElement.textContent = '没有找到 JWT Token';
+                resultElement.textContent = '没有找到 jwt_token';
             }
         });
 
@@ -96,7 +96,7 @@
 
         document.getElementById('clearToken').addEventListener('click', function() {
             localStorage.removeItem('jwt_token');
-            document.getElementById('result').textContent = 'JWT Token 已清除';
+            document.getElementById('result').textContent = 'jwt_token 已清除';
         });
         
         document.getElementById('setTestToken').addEventListener('click', function() {
@@ -118,21 +118,21 @@
             const token = localStorage.getItem('jwt_token');
             const result = document.getElementById('result');
             if (!token) {
-                result.textContent = '没有找到 JWT Token';
+                result.textContent = '没有找到 jwt_token';
                 return;
             }
             
             try {
                 const parts = token.split('.');
                 if (parts.length !== 3) {
-                    result.textContent = '无效的 JWT Token 格式';
+                    result.textContent = '无效的 jwt_token 格式';
                     return;
                 }
                 
                 const header = JSON.parse(atob(parts[0]));
                 const payload = JSON.parse(atob(parts[1]));
                 
-                result.textContent = `JWT Token 解析结果:
+                result.textContent = `jwt_token 解析结果:
 
 头部: ${JSON.stringify(header, null, 2)}
 
