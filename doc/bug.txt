@@ -1,0 +1,9 @@
+1. 接口规范：/Users/adam/Sites/FG/docs/api-workflow.md 
+2. http://localhost:3000/test-jwt (对应文件：/test-jwt.tsx文件)中所有接口都报错。 接口返回：
+    { "code": 403, "statusText": "unAuthorization", "message": "common:code_error.error_message.403", "data": null }
+3. 为了排查问题，proApi接口已经关闭了JWT，所以无论**类型1**接口还是**类型2**接口出错都与proApi项目无关，也与proApi项目的JWT验证无关
+  - 可以通过“curl -X GET http://localhost:3002/api/core/app/plugin/getSystemPlugins”来验证
+4. 本项目的数据库和权限逻辑有所调整，报错可能与数据和业务逻辑有关，需要排查。
+5. 已经反反复复对/test-jwt.tsx做了大量车调试，仍然报错。所以合理推测是接口的逻辑或者数据库中的数据的问题，需要通过排查来验证。
+
+请排查错误原因。关键检查点：http://localhost:3000/test-jwt 中所有接口访问都通过。如果你需要了解其它背景信息，请直接询问我。

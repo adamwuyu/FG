@@ -1,0 +1,520 @@
+# FastGPT API 工作流程与认证机制
+
+## **⚠️注意：为了方便调试，proApi JWT的认证机制已暂时关闭，即不认证就可访问proApi接口**
+
+## 一、系统架构概述
+
+1. 本项目分为前端和后端两个部分
+2. 前端访问的接口都由本项目后端提供
+3. 本项后端接到前端的接口访问后，有两种类型的处理方式：
+   - **类型1**: 接口url中带有proApi的，本项目**后端**会调用proApi项目提供的接口，这些接口由外部的proApi项目提供。proApi接口需要通过JWT认证才能有效获得数据，所以会获取令牌；令牌获得后返回给**前端**，前端通过local Storage保存令牌，之后访问proApi接口时都需要带着这个token；令牌过期后需要重新登录获取新令牌。
+   - **类型2**: 其它接口调用的是本项目nodejs处理逻辑，不调用外部接口，这些接口的处理逻辑在本项目nodejs中实现，使用项目自身的基于Cookie的认证机制。
+
+## 二、认证机制对比
+
+本项目同时存在两套并行的认证机制：
+
+| 特性 | 项目自身认证机制 | proApi JWT认证机制 |
+|------|----------------|-------------------|
+| 认证方式 | 基于Cookie | 基于JWT Token |
+| 存储位置 | Cookie (fastgpt_token) | localStorage (jwt_token) |
+| 应用范围 | 项目内部API | proApi外部服务API |
+| 过期处理 | 重定向到登录页 | 自动刷新Token |
+
+### 认证流程图解
+
+```mermaid
+graph TD
+    A[用户] -->|登录请求| B[前端应用]
+    B -->|/support/user/account/loginByPassword| C[后端服务]
+    C -->|验证用户名密码| D{验证成功?}
+    D -->|否| E[返回错误]
+    D -->|是| F[设置Cookie: fastgpt_token]
+    C -->|调用| G[proApi服务]
+    G -->|返回JWT token| C
+    C -->|返回用户信息和JWT token| B
+    B -->|存储JWT token到localStorage| H[前端存储]
+    
+    A -->|访问普通API| I[带Cookie请求]
+    I -->|fastgpt_token| C
+    
+    A -->|访问proApi| J[带JWT请求]
+    J -->|Authorization: Bearer token| K[后端转发]
+    K -->|转发请求到proApi| G
+```
+
+## 三、项目自身的授权机制
+
+### 1. 认证流程
+
+1. **登录流程**：
+   - 用户通过前端登录界面输入用户名和密码
+   - 前端发送登录请求到后端 `/support/user/account/loginByPassword`
+   - 后端验证用户名和密码
+   - 验证成功后，后端生成会话Cookie (`fastgpt_token`)
+   - 同时获取proApi的JWT token并返回给前端
+
+2. **会话维护**：
+   - 用户的会话状态通过Cookie (`fastgpt_token`) 维护
+   - 每次请求自动携带Cookie进行身份验证
+   - Cookie过期后需要重新登录
+
+3. **权限验证**：
+   - 后端API接口通过中间件验证Cookie的有效性
+   - 根据用户角色和权限决定是否允许访问特定资源
+
+### 2. 关键代码实现
+
+**Cookie设置代码**:
+
+```javascript
+// 设置登录Cookie
+res.setHeader(
+  'Set-Cookie',
+  serialize('fastgpt_token', token, {
+    path: '/',
+    httpOnly: true,
+    sameSite: 'lax',
+    secure: process.env.NODE_ENV === 'production',
+    maxAge: 60 * 60 * 24 * 7 // 7天有效期
+  })
+);
+```
+
+**权限验证中间件**:
+
+```javascript
+// 验证用户身份中间件
+export async function authMiddleware(
+  req: NextApiRequest,
+  res: NextApiResponse
+) {
+  const token = req.cookies.fastgpt_token;
+  
+  if (!token) {
+    return jsonRes(res, {
+      code: 401,
+      message: '未登录'
+    });
+  }
+  
+  try {
+    // 验证token有效性
+    const decoded = jwt.verify(token, process.env.TOKEN_SECRET);
+    req.userId = decoded.userId;
+    return true;
+  } catch (error) {
+    return jsonRes(res, {
+      code: 401,
+      message: 'token已过期'
+    });
+  }
+}
+```
+
+## 四、proApi接口的JWT认证机制
+
+### 1. 认证流程
+
+```mermaid
+sequenceDiagram
+    participant User as 用户
+    participant Frontend as 前端应用
+    participant Backend as 后端服务
+    participant ProAPI as proApi服务
+    
+    User->>Frontend: 登录请求
+    Frontend->>Backend: /support/user/account/loginByPassword
+    Backend->>Backend: 验证用户名密码
+    Backend->>ProAPI: /support/user/auth/login
+    ProAPI-->>Backend: 返回JWT token
+    Backend-->>Frontend: 返回用户信息和JWT token
+    Frontend->>Frontend: 存储JWT token到localStorage
+    
+    User->>Frontend: 请求proApi资源
+    Frontend->>Frontend: 检查token是否过期
+    alt token即将过期
+        Frontend->>Backend: /proApi/support/user/account/refreshToken
+        Backend->>ProAPI: 转发刷新token请求
+        ProAPI-->>Backend: 返回新token
+        Backend-->>Frontend: 返回新token
+        Frontend->>Frontend: 更新localStorage中的token
+    end
+    
+    Frontend->>Backend: 带Authorization头的请求
+    Backend->>ProAPI: 转发请求到proApi服务
+    ProAPI-->>Backend: 返回数据
+    Backend-->>Frontend: 返回数据给前端
+```
+
+### 2. 特殊接口处理流程
+
+有的接口url不包含proApi，但是逻辑上它又需要访问proApi，比如：
+
+1. **登录流程**：
+   - 登录时**前端**访问`/support/user/account/loginByPassword`
+   - **后端**收到请求后，除了验证用户名密码外，还需要访问`http://localhost:3002/api/support/user/auth/login`，从而获得用于proApi接口的token，然后把token返回前端
+   - **前端**接收到token后，储存为local storage，之后再访问proApi的接口时都需要带着这个token，如果token过期了，需要刷新token
+
+2. **Token刷新流程**：
+   - 当token即将过期时，前端会自动调用`/proApi/support/user/account/refreshToken`接口刷新token
+   - 后端会将请求转发到proApi服务，获取新的token后返回给前端
+   - 前端更新localStorage中的token
+
+## 五、关键代码实现
+
+### 1. 后端登录接口实现
+
+**文件路径**: `/projects/app/src/pages/api/support/user/account/loginByPassword.ts`
+
+```javascript
+// 调用 proApi 获取 token
+if (!FastGPTProUrl) {
+  throw new Error('未配置商业版链接');
+}
+
+try {
+  console.log(`尝试调用 proApi 接口: ${FastGPTProUrl}/support/user/auth/login`);
+
+  // 调用 proApi 的认证接口获取 token
+  const proApiResponse = await axios.post(
+    `${FastGPTProUrl}/support/user/auth/login`,
+    {
+      username,
+      password
+    },
+    {
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    }
+  );
+
+  // 从 proApi 响应中获取 token
+  const token = proApiResponse.data?.data?.token;
+
+  if (!token) {
+    console.error('proApi 响应中没有 token:', proApiResponse.data);
+    throw new Error('获取 token 失败');
+  }
+
+  // 返回用户信息和 token 给前端
+  return jsonRes(res, {
+    data: {
+      token,
+      user: userDetail
+    }
+  });
+} catch (error) {
+  console.error('调用 proApi 获取 token 失败:', error);
+  throw new Error('获取 token 失败');
+}
+```
+
+### 2. 后端Token刷新接口实现
+
+**文件路径**: `/projects/app/src/pages/api/support/user/account/refreshToken.ts`
+
+```javascript
+// 构建请求路径
+const requestPath = `/api/support/user/account/refreshToken`;
+const parsedUrl = new URL(FastGPTProUrl);
+
+// 创建转发请求
+const requestResult = request({
+  protocol: parsedUrl.protocol,
+  hostname: parsedUrl.hostname,
+  port: parsedUrl.port,
+  path: requestPath,
+  method: req.method,
+  headers: req.headers
+});
+
+// 转发请求体
+req.pipe(requestResult);
+
+// 处理响应
+requestResult.on('response', (response) => {
+  // 转发响应头
+  Object.keys(response.headers).forEach((key) => {
+    // @ts-ignore
+    res.setHeader(key, response.headers[key]);
+  });
+
+  // 转发状态码和响应体
+  response.statusCode && res.writeHead(response.statusCode);
+  response.pipe(res);
+});
+```
+
+### 3. 前端请求拦截器实现
+
+**文件路径**: `/projects/app/src/web/common/api/request.ts`
+
+```javascript
+// 请求开始拦截器
+function startInterceptors(config: InternalAxiosRequestConfig): InternalAxiosRequestConfig {
+  if (config.headers) {
+    // 只为proApi请求或特定需要认证的接口添加Authorization头
+    const isProApiRequest = config.url?.includes('proApi');
+    // 需要认证的特定接口列表（不包含proApi但在后端会调用proApi）
+    const authRequiredPaths = [
+      '/api/support/user/account/login',
+      '/api/support/user/account/loginByPassword',
+      '/api/support/user/account/refreshToken'
+    ];
+    const needsAuth = isProApiRequest || authRequiredPaths.some(path => config.url?.includes(path));
+    
+    // 如果需要认证，添加Authorization头
+    if (needsAuth) {
+      // 检查令牌是否即将过期（仅对需要认证的请求）
+      if (isTokenExpiringSoon() && !config.url?.includes('/refreshToken')) {
+        // 如果令牌即将过期且不是刷新令牌的请求，则先刷新令牌
+        // 创建一个新的Promise，确保返回类型正确
+        const promise = handleTokenRefresh()
+          .then((newToken) => {
+            // 使用新令牌
+            if (newToken && config.headers) {
+              config.headers['Authorization'] = `Bearer ${newToken}`;
+            }
+            return config;
+          })
+          .catch(() => {
+            // 刷新失败时仍然使用原有令牌
+            const token = localStorage.getItem('jwt_token');
+            if (token && config.headers) {
+              config.headers['Authorization'] = `Bearer ${token}`;
+            }
+            return config;
+          });
+        
+        return promise as unknown as InternalAxiosRequestConfig;
+      } else {
+        // 令牌未过期，直接使用
+        const token = localStorage.getItem('jwt_token');
+        if (token && config.headers) {
+          config.headers['Authorization'] = `Bearer ${token}`;
+        }
+      }
+    }
+  }
+
+  return config;
+}
+```
+
+### 4. 前端登录和Token处理
+
+**文件路径**: `/projects/app/src/web/support/user/api.ts`
+
+```javascript
+// 处理登录响应，存储JWT令牌
+function handleLoginResponse(response: ResLogin) {
+  if (response.token) {
+    localStorage.setItem('jwt_token', response.token);
+  }
+  return response;
+}
+
+// 登录请求
+export const postLogin = ({ password, ...props }: PostLoginProps) => {
+  return POST<ResLogin>('/support/user/account/loginByPassword', {
+    ...props,
+    password: hashStr(password)
+  }).then(handleLoginResponse);
+};
+
+// 刷新JWT令牌
+export const refreshToken = () =>
+  GET<{ token: string }>('/proApi/support/user/account/refreshToken').then((response) => {
+    if (response.token) {
+      localStorage.setItem('jwt_token', response.token);
+    }
+    return response;
+  });
+```
+
+## 六、当前存在的问题与解决方案
+
+### 问题描述
+
+目前代码逻辑中，后端错误地尝试把token保存在local storage中，而local storage是前端浏览器的特性，后端无法保存和访问。
+
+### 解决方案
+
+1. **后端修改**：
+   - 不能尝试保存token到local storage，而是返回token给前端
+   - 确保所有需要访问proApi的接口都正确转发请求，包括请求头和请求体
+   - 对于登录接口，确保使用正确的proApi路径：`/api/support/user/auth/login`
+
+2. **前端修改**：
+   - 登录时保存token到local storage
+   - 之后访问proApi接口时都需要带着这个token
+   - 实现token过期检测和自动刷新机制
+
+### 具体实现步骤
+
+1. **修改后端登录接口**：
+   ```javascript
+   // 修改后的登录接口
+   export default async function handler(req: NextApiRequest, res: NextApiResponse) {
+     try {
+       // 验证用户名密码...
+       
+       // 设置项目自身的Cookie认证
+       res.setHeader(
+         'Set-Cookie',
+         serialize('fastgpt_token', token, {
+           path: '/',
+           httpOnly: true,
+           sameSite: 'lax',
+           secure: process.env.NODE_ENV === 'production',
+           maxAge: 60 * 60 * 24 * 7
+         })
+       );
+       
+       // 获取proApi的JWT token
+       const proApiToken = await getProApiToken(username, password);
+       
+       // 返回用户信息和JWT token给前端
+       return jsonRes(res, {
+         data: {
+           token: proApiToken, // 返回给前端存储
+           user: userDetail
+         }
+       });
+     } catch (error) {
+       // 错误处理...
+     }
+   }
+   ```
+
+2. **添加Token过期检测函数**：
+   ```javascript
+   // 检查token是否即将过期
+   function isTokenExpiringSoon() {
+     const token = localStorage.getItem('jwt_token');
+     if (!token) return false;
+     
+     try {
+       // 解析JWT token
+       const base64Url = token.split('.')[1];
+       const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+       const payload = JSON.parse(window.atob(base64));
+       
+       // 检查是否在过期前5分钟
+       const expiryTime = payload.exp * 1000;
+       const currentTime = Date.now();
+       const timeToExpiry = expiryTime - currentTime;
+       
+       return timeToExpiry < 5 * 60 * 1000; // 5分钟内即将过期
+     } catch (error) {
+       console.error('解析token失败:', error);
+       return true; // 解析失败时尝试刷新
+     }
+   }
+   ```
+
+3. **实现Token刷新处理**：
+   ```javascript
+   // 处理token刷新
+   async function handleTokenRefresh() {
+     try {
+       const response = await refreshToken();
+       return response.token;
+     } catch (error) {
+       console.error('刷新token失败:', error);
+       // 刷新失败时可能需要重定向到登录页
+       if (window.location.pathname !== '/login') {
+         window.location.href = '/login';
+       }
+       return null;
+     }
+   }
+   ```
+
+## 七、测试与验证
+
+### 1. API接口测试
+
+如果后端访问 `http://localhost:3002/api/support/user/auth/login` 遇到问题，请参考以下curl命令：
+
+```bash
+curl -X POST http://localhost:3002/api/support/user/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{"username": "root", "password": "IloveGPT!"}'
+```
+
+预期响应：
+
+```json
+{
+  "code": 200,
+  "message": "登录成功",
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "user": {
+      "userId": "67b1312ad9d41c2d4f2b5ce0",
+      "username": "root",
+      "avatar": "/icon/human.svg",
+      "teamId": "67d2e274ab14570086d632ef",
+      "teamName": "Test Team"
+    }
+  }
+}
+```
+
+### 2. 前端Token存储验证
+
+登录成功后，可以通过浏览器开发者工具检查localStorage中是否正确存储了jwt_token：
+
+```javascript
+// 在浏览器控制台执行
+console.log(localStorage.getItem('jwt_token'));
+```
+
+### 3. Token刷新机制测试
+
+可以通过修改localStorage中的token过期时间来测试刷新机制：
+
+```javascript
+// 在浏览器控制台执行，模拟token即将过期
+const token = localStorage.getItem('jwt_token');
+const parts = token.split('.');
+const payload = JSON.parse(atob(parts[1]));
+payload.exp = Math.floor(Date.now() / 1000) + 240; // 设置为4分钟后过期
+const newPayload = btoa(JSON.stringify(payload)).replace(/=/g, '');
+const newToken = `${parts[0]}.${newPayload}.${parts[2]}`;
+localStorage.setItem('jwt_token', newToken);
+```
+
+## 八、关键检测点
+
+1. **请求路径验证**：
+   - 确认 proApi 服务的正确登录接口路径
+   - 验证完整的请求 URL 是否正确
+
+2. **请求头和请求体**：
+   - 确保正确转发请求头和请求体
+   - 特别注意 Content-Type 和 Content-Length 等关键请求头
+
+3. **响应解析**：
+   - 添加足够的日志输出，查看原始响应数据
+   - 检查响应中是否包含 token 和 user 信息
+
+4. **响应格式转换**：
+   - 确保返回给前端的响应格式符合 ResLogin 接口定义
+   - 验证 token 是否正确设置到 localStorage 中
+
+5. **错误处理**：
+   - 添加全面的错误处理，确保在各种异常情况下都能返回有意义的错误信息
+   - 特别关注网络错误、解析错误和验证错误等常见问题
+
+6. **安全性检查**：
+   - 确保JWT token在传输过程中使用HTTPS加密
+   - 验证token中不包含敏感信息
+   - 确认token有合理的过期时间设置
+
+7. **性能监控**：
+   - 监控token刷新操作的频率和成功率
+   - 确保token刷新不会影响用户体验
