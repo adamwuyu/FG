@@ -1,5 +1,16 @@
 import { useEffect, useState } from 'react';
-import { Box, Button, VStack, Text, Code, Heading, Divider } from '@chakra-ui/react';
+import {
+  Box,
+  Button,
+  VStack,
+  Text,
+  Code,
+  Heading,
+  Divider,
+  Input,
+  FormControl,
+  FormLabel
+} from '@chakra-ui/react';
 
 /**
  * JWT令牌测试页面
@@ -9,6 +20,8 @@ export default function TestJWT() {
   const [jwtToken, setJwtToken] = useState('');
   const [requestResult, setRequestResult] = useState<any>(null);
   const [error, setError] = useState('');
+  const [username, setUsername] = useState('root');
+  const [password, setPassword] = useState('IloveGPT!');
 
   // 页面加载时获取JWT令牌
   useEffect(() => {
@@ -60,6 +73,90 @@ export default function TestJWT() {
     }
   };
 
+  // 测试POST请求
+  const testPostRequest = async (url: string, body: any, withAuth: boolean = true) => {
+    try {
+      setError('');
+      setRequestResult(null);
+
+      const headers: Record<string, string> = {
+        'Content-Type': 'application/json'
+      };
+
+      // 如果需要认证，添加Authorization头
+      if (withAuth && jwtToken && jwtToken !== '未找到JWT令牌') {
+        headers['Authorization'] = `Bearer ${jwtToken}`;
+        // 添加API密钥
+        const apiKey = localStorage.getItem('api_key');
+        if (apiKey) {
+          headers['X-API-KEY'] = apiKey;
+        }
+      }
+
+      console.log('发送POST请求:', {
+        url,
+        body,
+        headers
+      });
+
+      const response = await fetch(url, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(body)
+      });
+
+      const data = await response.json();
+      console.log('响应数据:', data);
+
+      setRequestResult({
+        status: response.status,
+        headers: Object.fromEntries(response.headers.entries()),
+        data
+      });
+    } catch (err) {
+      console.error('请求出错:', err);
+      setError(err instanceof Error ? err.message : String(err));
+    }
+  };
+
+  // 登录获取JWT令牌
+  const login = async () => {
+    try {
+      setError('');
+      setRequestResult(null);
+
+      // 根据本地代码，发起登录请求
+      const response = await fetch('/api/support/user/account/loginByPassword', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          username,
+          password: password // 注意：实际应用中应该对密码进行哈希处理
+        })
+      });
+
+      const data = await response.json();
+      console.log('登录响应:', data);
+
+      if (data.data?.token) {
+        localStorage.setItem('jwt_token', data.data.token);
+        setJwtToken(data.data.token);
+        setRequestResult({
+          status: response.status,
+          message: '登录成功',
+          token: data.data.token
+        });
+      } else {
+        setError('登录失败: 响应中没有token');
+      }
+    } catch (err) {
+      console.error('登录出错:', err);
+      setError(err instanceof Error ? err.message : String(err));
+    }
+  };
+
   // 刷新令牌
   const refreshToken = async () => {
     try {
@@ -102,6 +199,26 @@ export default function TestJWT() {
 
       <VStack align="start" spacing={4} mb={6}>
         <Heading as="h2" size="md">
+          登录获取JWT令牌
+        </Heading>
+        <FormControl>
+          <FormLabel>用户名</FormLabel>
+          <Input value={username} onChange={(e) => setUsername(e.target.value)} mb={2} />
+          <FormLabel>密码</FormLabel>
+          <Input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            mb={2}
+          />
+        </FormControl>
+        <Button colorScheme="blue" onClick={login}>
+          登录
+        </Button>
+      </VStack>
+
+      <VStack align="start" spacing={4} mb={6}>
+        <Heading as="h2" size="md">
           当前JWT令牌
         </Heading>
         <Code p={2} borderRadius="md" width="100%" overflowX="auto">
@@ -113,10 +230,34 @@ export default function TestJWT() {
         <Heading as="h2" size="md">
           测试操作
         </Heading>
-        <Button colorScheme="blue" onClick={() => testRequest('/api/core/app/list')}>
+        <Button
+          colorScheme="blue"
+          onClick={() =>
+            testPostRequest('/api/core/app/list', {
+              type: undefined,
+              parentId: undefined,
+              searchKey: undefined,
+              getRecentlyChat: false
+            })
+          }
+        >
           测试请求应用列表 (带JWT令牌)
         </Button>
-        <Button colorScheme="green" onClick={() => testRequest('/api/core/app/list', false)}>
+        <Button
+          colorScheme="green"
+          onClick={() =>
+            testPostRequest(
+              '/api/core/app/list',
+              {
+                type: undefined,
+                parentId: undefined,
+                searchKey: undefined,
+                getRecentlyChat: false
+              },
+              false
+            )
+          }
+        >
           测试请求应用列表 (不带JWT令牌)
         </Button>
         <Button

@@ -32,9 +32,9 @@ function isTokenExpiringSoon() {
     const { exp } = JSON.parse(jsonPayload);
     if (!exp) return false;
 
-    // 如果令牌在30分钟内过期，则返回true
+    // 如果令牌在24小时内过期，则返回true
     const expiresIn = exp - Math.floor(Date.now() / 1000);
-    return expiresIn > 0 && expiresIn < 30 * 60; // 30分钟
+    return expiresIn > 0 && expiresIn < 24 * 60 * 60; // 24小时
   } catch (error) {
     console.error('检查令牌过期时间出错', error);
     return false;
