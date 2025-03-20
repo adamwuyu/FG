@@ -14,10 +14,16 @@ setup('登陆', async ({ page, context }) => {
   console.log('password', password);
 
   if (!password) {
+    console.log('.env.local的正确路径：', process.cwd());
     throw new Error('PASSWORD is not set');
   }
   await page.fill('input[name="password"]', password);
+
+  // 点击同意保存cookie按钮
   await page.getByRole('button', { name: 'agree' }).click();
+  // 等待2秒
+  await page.waitForTimeout(2000);
+
   await page.getByRole('button', { name: 'English(US)' }).click();
   await page.waitForTimeout(500);
   await page.getByRole('menuitem', { name: '简体中文' }).click();

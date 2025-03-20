@@ -10,6 +10,7 @@ interface ConfigType {
   headers?: { [key: string]: string };
   hold?: boolean;
   timeout?: number;
+  jwtToken?: string;
 }
 interface ResponseDataType {
   code: number;
@@ -88,6 +89,15 @@ export function request(url: string, data: any, config: ConfigType, method: Meth
     }
   }
 
+  // 添加JWT令牌到请求头
+  const headers = {
+    ...(config.headers || {})
+  };
+
+  if (config.jwtToken) {
+    headers['Authorization'] = `Bearer ${config.jwtToken}`;
+  }
+
   return instance
     .request({
       baseURL: FastGPTProUrl,
@@ -95,7 +105,8 @@ export function request(url: string, data: any, config: ConfigType, method: Meth
       method,
       data: ['POST', 'PUT'].includes(method) ? data : null,
       params: !['POST', 'PUT'].includes(method) ? data : null,
-      ...config // 用户自定义配置，可以覆盖前面的配置
+      ...config, // 用户自定义配置，可以覆盖前面的配置
+      headers // 确保headers最后设置，避免被覆盖
     })
     .then((res) => checkRes(res.data))
     .catch((err) => responseError(err));
@@ -124,8 +135,12 @@ export function DELETE<T = undefined>(url: string, data = {}, config: ConfigType
   return request(url, data, config, 'DELETE');
 }
 
-export const plusRequest = (config: AxiosRequestConfig) =>
+export const plusRequest = (config: AxiosRequestConfig & { jwtToken?: string }) =>
   instance.request({
     ...config,
-    baseURL: FastGPTProUrl
+    baseURL: FastGPTProUrl,
+    headers: {
+      ...config.headers,
+      ...(config.jwtToken ? { Authorization: `Bearer ${config.jwtToken}` } : {})
+    }
   });

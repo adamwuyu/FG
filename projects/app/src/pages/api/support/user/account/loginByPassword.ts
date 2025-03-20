@@ -9,6 +9,8 @@ import { useIPFrequencyLimit } from '@fastgpt/service/common/middle/reqFrequency
 import { pushTrack } from '@fastgpt/service/common/middle/tracks/utils';
 import { CommonErrEnum } from '@fastgpt/global/common/error/code/common';
 import { UserErrEnum } from '@fastgpt/global/common/error/code/user';
+import { POST } from '@fastgpt/service/common/api/plusRequest';
+import { FastGPTProUrl } from '@fastgpt/service/common/system/constants';
 
 async function handler(req: NextApiRequest, res: NextApiResponse) {
   const { username, password } = req.body as PostLoginProps;
@@ -65,9 +67,27 @@ async function handler(req: NextApiRequest, res: NextApiResponse) {
 
   setCookie(res, token);
 
+  let proToken = '';
+  // 如果配置了proApi服务，获取JWT令牌
+  if (FastGPTProUrl) {
+    try {
+      // 调用proApi获取JWT令牌
+      const proTokenResponse = await POST<{ token: string }>('/support/user/account/getJwtToken', {
+        userId: user._id.toString(),
+        teamId: userDetail.team.teamId,
+        tmbId: userDetail.team.tmbId,
+        isRoot: username === 'root'
+      });
+      proToken = proTokenResponse.token;
+    } catch (err) {
+      console.error('获取proApi令牌失败', err);
+      // 不影响本地登录，继续执行
+    }
+  }
+
   return {
     user: userDetail,
-    token
+    token: proToken || token // 优先返回proApi令牌，如果获取失败则使用本地令牌
   };
 }
 
