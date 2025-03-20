@@ -21,6 +21,7 @@ import { getOrgIdSetWithParentByTmbId } from '@fastgpt/service/support/permissio
 import { addSourceMember } from '@fastgpt/service/support/user/utils';
 import { MongoTeamMember } from '@fastgpt/service/support/user/team/teamMemberSchema';
 import { MongoTeamTags } from '@fastgpt/service/support/user/team/teamTagsSchema'; // 补丁0021: 引入团队标签模型
+import { SourceMemberType } from '@fastgpt/global/support/user/type'; // 添加缺少的导入
 
 export type ListAppBody = {
   parentId?: ParentIdType;
@@ -54,8 +55,18 @@ async function handler(req: ApiRequestProps<ListAppBody>): Promise<AppListItemTy
 
   // 通过 tmb.userId 查询所属团队，提取团队名称后查询对应的 tag key 数组
   const tmbTeams = await MongoTeamMember.find({ userId: tmb.userId }).populate('teamId', 'name');
-  const tmbTeamNames = tmbTeams.map((item) => item.name);
-  // tmbTeamNames的结构是：['组1','组2']
+  // 修复：正确访问populate后的teamId对象中的name属性，添加数据验证
+  const tmbTeamNames = tmbTeams
+    .filter((item) => item.teamId && typeof item.teamId === 'object')
+    .map((item) => {
+      // @ts-ignore - teamId在populate后是一个对象
+      if (typeof item.teamId === 'object' && item.teamId.name) {
+        // @ts-ignore - teamId在populate后是一个对象
+        return item.teamId.name;
+      }
+      return '';
+    })
+    .filter(Boolean); // 过滤掉空字符串
   // 查询MongoTeamTags中的label为['组1','组2']的记录，并提取其中的key组成新数组['key1','key2']
   const tagKeys = await MongoTeamTags.find({ label: { $in: tmbTeamNames } }).distinct('key');
 
@@ -182,15 +193,21 @@ async function handler(req: ApiRequestProps<ListAppBody>): Promise<AppListItemTy
 
   return formatApps
     .filter((app) => app !== null && app._id !== null)
-    .map((app) => ({
-      _id: app ? app._id : null,
-      avatar: app ? app.avatar : null,
-      type: app ? app.type : null,
-      name: app ? app.name : null,
-      intro: app ? app.intro : null,
-      permission: app ? app.permission : null,
-      defaultPermission: app ? app.defaultPermission : AppDefaultPermissionVal
-    }));
+    .map((app) => {
+      // 确保不返回null值，以符合AppListItemType类型要求
+      return {
+        _id: app?._id || '',
+        avatar: app?.avatar || '',
+        type: app?.type || AppTypeEnum.workflow, // 提供默认值
+        name: app?.name || '',
+        intro: app?.intro || '',
+        permission: app?.permission,
+        tmbId: app?.tmbId || '',
+        updateTime: app?.updateTime || new Date(),
+        inheritPermission: app?.inheritPermission || false,
+        sourceMember: { name: '', avatar: '' } // 简化为符合类型的基本值
+      } as AppListItemType; // 增加类型断言确保返回类型正确
+    });
 }
 
 export default NextAPI(handler);

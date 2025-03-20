@@ -15,7 +15,8 @@ const unAuthPage: { [key: string]: boolean } = {
   '/chat/team': true,
   '/tools/price': true,
   '/price': true,
-  '/register': true
+  '/register': true,
+  '/test-jwt': true
 };
 
 const Auth = ({ children }: { children: JSX.Element | React.ReactNode }) => {
