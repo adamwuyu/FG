@@ -60,3 +60,4 @@ playwright/storageState.json
 files/helm/fastgpt/values.yaml
 
 .windsurfrules
+cookies.txt

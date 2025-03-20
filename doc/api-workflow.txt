@@ -9,6 +9,7 @@
 3. 本项后端接到前端的接口访问后，有两种类型的处理方式：
    - **类型1**: 接口url中带有proApi的，本项目**后端**会调用proApi项目提供的接口，这些接口由外部的proApi项目提供。proApi接口需要通过JWT认证才能有效获得数据，所以会获取令牌；令牌获得后返回给**前端**，前端通过local Storage保存令牌，之后访问proApi接口时都需要带着这个token；令牌过期后需要重新登录获取新令牌。
    - **类型2**: 其它接口调用的是本项目nodejs处理逻辑，不调用外部接口，这些接口的处理逻辑在本项目nodejs中实现，使用项目自身的基于Cookie的认证机制。
+   - **类型3**: 有的接口url中没有proApi，它们基本和类型2接口一样（比如读取某种资源的列表），但隐性地调用了proApi接口（比如读取某些权限），这部分又需要按照类型1接口的方式进行
 
 ## 二、认证机制对比
 
@@ -63,7 +64,23 @@ graph TD
    - 后端API接口通过中间件验证Cookie的有效性
    - 根据用户角色和权限决定是否允许访问特定资源
 
-### 2. 关键代码实现
+### curl命令验证
+
+```bash
+curl -X POST http://localhost:3000/api/support/user/account/loginByPassword \
+  -H "Content-Type: application/json" \
+  -d '{"username": "root", "password": "PASSWORD"}' \                              
+  -c ./tests/cookies.txt \
+  -v
+
+curl -X POST http://localhost:3000/api/core/app/list \                       
+  -H "Content-Type: application/json" \
+  -d '{"parentId": null, "type": null, "getRecentlyChat": false, "searchKey": ""}' \
+  -b ./tests/cookies.txt \
+  -v
+```
+
+### 3. 关键代码实现
 
 **Cookie设置代码**:
 
