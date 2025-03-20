@@ -11,6 +11,44 @@
    - **类型2**: 其它接口调用的是本项目nodejs处理逻辑，不调用外部接口，这些接口的处理逻辑在本项目nodejs中实现，使用项目自身的基于Cookie的认证机制。
    - **类型3**: 有的接口url中没有proApi，它们基本和类型2接口一样（比如读取某种资源的列表），但隐性地调用了proApi接口（比如读取某些权限），这部分又需要按照类型1接口的方式进行
 
+### 类型1 接口列表
+#### 团队基础接口
+1. 获取用户相关的团队列表
+GET /api/proApi/support/user/team/list
+
+2. 处理团队邀请
+PUT /api/proApi/support/user/team/member/updateInvite
+
+3. 创建团队
+POST /api/proApi/support/user/team/create
+
+4. 切换团队
+PUT /api/proApi/support/user/team/switch
+
+#### 插件接口
+1. 获取系统插件
+GET /api/proApi/core/app/plugin/getSystemPlugins
+
+#### 应用协作者接口
+1. 获取协作者列表
+GET /api/proApi/core/app/collaborator/list
+
+2. 添加/更新协作者
+POST /api/proApi/core/app/collaborator/update
+
+3. 删除协作者
+DELETE /api/proApi/core/app/collaborator/delete
+
+#### 系统通知接口
+1. 添加系统公告
+POST /api/proApi/support/user/inform/addSystemMsgModal
+
+2. 获取系统公告
+GET /api/proApi/support/user/inform/getSystemMsgModal
+
+3. 获取未读消息数量
+GET /api/proApi/support/user/inform/countUnread
+
 ## 二、认证机制对比
 
 本项目同时存在两套并行的认证机制：
