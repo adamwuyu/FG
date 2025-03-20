@@ -8,6 +8,7 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
   try {
     await connectToDatabase();
     const { path = [], ...query } = req.query as any;
+    // const requestPath = `/${path?.join('/')}?${new URLSearchParams(query).toString()}`;
     const requestPath = `/api/${path?.join('/')}?${new URLSearchParams(query).toString()}`;
 
     if (!requestPath) {
