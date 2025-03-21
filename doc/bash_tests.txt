@@ -1,0 +1,119 @@
+# 使用verify-proapi.sh脚本进行手动测试
+
+## 概述
+`verify-proapi.sh`脚本用于验证类型1接口(proApi)的请求转发功能，检查JWT令牌是否正确传递以及响应是否正常。
+
+## 准备工作
+
+### 1. 确保脚本有执行权限
+```bash
+chmod +x scripts/verify-proapi.sh
+```
+
+### 2. 获取有效的JWT令牌
+JWT令牌可以通过以下方式获取：
+- 登录应用后，从浏览器开发者工具中的localStorage获取`jwt_token`值
+- 或使用项目中的令牌生成工具生成测试令牌
+
+## 运行测试
+
+### 1. 执行脚本
+```bash
+bash scripts/verify-proapi.sh
+```
+
+### 2. 输入JWT令牌
+脚本运行后会提示输入JWT令牌：
+```
+请输入JWT令牌: 
+```
+粘贴令牌并按回车继续。
+
+### 3. 查看测试结果
+脚本会自动测试预定义的proApi接口并显示结果，例如：
+
+```
+===== ProAPI接口验证脚本 =====
+基础URL: http://localhost:3000
+使用JWT令牌: eyJhbGciOi...
+---------------------------------
+开始测试GET接口...
+测试GET请求: /api/proApi/support/user/team/list
+状态码: 200 - 成功
+响应简要内容: {"code":200,"data":[{"_id":"67d2e274ab14570086d632ef","name":"正式团队","ownerId":"67b1312ad9d41c2d4f2b5...
+---------------------------------
+测试GET请求: /api/proApi/core/app/plugin/getSystemPlugins
+状态码: 200 - 成功
+响应简要内容: {"code":200,"data":[]}...
+---------------------------------
+测试GET请求: /api/proApi/core/app/collaborator/list
+状态码: 400 - 失败
+错误响应: {"code":400,"message":"应用ID不能为空"}
+---------------------------------
+测试GET请求: /api/proApi/support/user/inform/getSystemMsgModal
+状态码: 200 - 成功
+响应简要内容: {"code":404,"message":"User not found"}...
+---------------------------------
+测试完成!
+```
+
+## 测试结果解读
+
+- **成功响应**：绿色文本显示"状态码: 200 - 成功"，表示请求成功处理
+- **失败响应**：红色文本显示"状态码: xxx - 失败"，表示请求失败
+- **响应内容**：显示响应的前100个字符，可用于基本验证
+
+## 测试验收标准
+
+1. **接口访问性**：所有接口应该能被正确访问，即使有些可能返回业务错误（如需要应用ID参数）
+2. **JWT传递验证**：确认JWT令牌被正确传递（通过成功的响应验证）
+3. **错误处理**：即使接口返回错误，也应该是业务逻辑错误，而非认证错误
+
+## 常见问题与解决方案
+
+### 1. 所有请求都失败
+- 检查服务器是否运行在http://localhost:3000
+- 确认JWT令牌有效且未过期
+
+### 2. 特定接口返回400或404错误
+- 这可能是业务逻辑错误，如缺少必要参数
+- 如果错误信息提示"应用ID不能为空"，这是正常的，因为测试脚本没有提供应用ID
+- 只要错误不是认证相关的（如401未授权），就表示JWT令牌传递正常
+
+### 3. 认证错误（401状态码）
+- JWT令牌可能无效或已过期
+- 检查令牌格式是否正确
+- 获取新的JWT令牌并重试
+
+## 脚本自定义
+
+如需测试其他接口或POST请求，可编辑脚本修改：
+
+### 添加GET接口测试
+编辑脚本中的`ENDPOINTS`数组：
+```bash
+declare -a ENDPOINTS=(
+  "/api/proApi/support/user/team/list"
+  "/api/proApi/core/app/plugin/getSystemPlugins"
+  # 添加新的接口
+  "/api/proApi/your/new/endpoint"
+)
+```
+
+### 添加POST接口测试
+在`main`函数中添加POST测试调用：
+```bash
+main() {
+  # 已有代码...
+  
+  # 添加POST测试
+  echo -e "${YELLOW}开始测试POST接口...${NC}"
+  test_post "/api/proApi/support/user/team/create" '{"name":"测试团队","description":"测试描述"}'
+  
+  echo -e "${GREEN}测试完成!${NC}"
+}
+```
+
+## 结论
+
+通过以上步骤和验证标准，可以确认类型1接口的请求转发功能是否正常工作。脚本提供了一种快速、直观的方法来验证JWT令牌的传递和接口的基本可用性。 
