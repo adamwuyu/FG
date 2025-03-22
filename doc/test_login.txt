@@ -1,0 +1,122 @@
+# 登录和JWT令牌测试文档
+
+## 概述
+`test_login.sh` 脚本用于测试用户登录、JWT令牌获取以及不同类型接口的访问权限验证。通过这个脚本，可以验证以下功能：
+
+1. ProAPI服务是否可达
+2. 登录接口是否正常工作
+3. JWT令牌是否成功获取
+4. 不同类型接口的权限验证是否有效
+
+## 测试环境准备
+
+### 前提条件
+- 本地服务运行在 `http://localhost:3000`
+- ProAPI服务运行在 `http://localhost:3002`
+- 有效的用户账号和密码
+
+### 执行权限设置
+```bash
+chmod +x scripts/test_login.sh
+```
+
+## 运行测试
+
+### 执行脚本
+```bash
+bash scripts/test_login.sh
+```
+
+## 测试内容详解
+
+### 1. ProAPI服务可达性测试
+测试ProAPI服务是否可以访问，通过访问健康检查接口 `/api/health` 来验证。
+
+### 2. ProAPI的JWT令牌接口测试
+直接测试ProAPI服务的 `/api/support/user/account/getJwtToken` 接口，验证是否可以正常获取JWT令牌。
+
+### 3. 本地getJwtToken接口测试
+测试本地服务的 `/api/support/user/account/getJwtToken` 接口，验证是否可以通过本地接口获取ProAPI的JWT令牌。
+
+### 4. 登录接口测试
+测试用户登录接口 `/api/support/user/account/loginByPassword`，验证是否可以成功登录并获取JWT令牌。
+
+### 5. 类型1接口测试 (ProAPI接口)
+测试通过本地服务转发到ProAPI的接口，例如 `/api/proApi/support/user/team/list`。这类接口需要JWT令牌验证。
+
+### 6. 类型2接口测试 (本地Cookie认证接口)
+测试本地服务的接口，例如 `/api/core/app/list`。这类接口使用Cookie认证。
+
+### 7. 类型3接口测试 (调用proApi的本地接口)
+测试本地服务但会调用ProAPI的接口，例如 `/api/support/user/inform/countUnread`。这类接口需要同时使用Cookie和JWT令牌。
+
+### 8. 直接访问ProAPI测试
+测试直接访问ProAPI服务的接口，例如 `/api/support/user/account/refreshToken`。验证JWT令牌在ProAPI服务上的有效性。
+
+## 测试结果解读
+
+### 输出说明
+- **绿色文本**：表示操作成功
+- **红色文本**：表示操作失败
+- **黄色文本**：表示正在执行的测试项
+- **蓝色文本**：表示重要的信息，如URL或请求详情
+
+### 成功标准
+1. ProAPI服务可达 - 状态码为2xx
+2. 登录成功 - 状态码为2xx，并获取到JWT令牌
+3. 各类接口测试 - 状态码为2xx，响应内容符合预期
+
+### 常见问题及解决方案
+
+#### ProAPI服务不可达
+- 确认ProAPI服务是否已启动
+- 验证ProAPI服务地址是否正确配置为 `http://localhost:3002`
+- 检查网络连接是否正常
+
+#### 获取JWT令牌失败
+- 错误原因：接口返回404
+  - 解决方案：检查URL路径是否正确，特别注意是否存在重复的 `/api` 前缀
+- 错误原因：接口返回401或403
+  - 解决方案：验证用户名和密码是否正确
+  
+#### 接口测试失败
+- 类型1接口(ProAPI)失败
+  - 可能原因：JWT令牌无效或已过期
+  - 检查点：验证获取的JWT令牌格式是否正确
+  
+- 类型2接口(Cookie认证)失败
+  - 可能原因：Cookie无效或已过期
+  - 检查点：查看Cookie是否正确设置和传递
+  
+- 类型3接口(调用proApi的本地接口)失败
+  - 可能原因：JWT令牌无效或ProAPI服务不可用
+  - 检查点：验证JWT令牌和Cookie是否同时有效
+
+## Bug修复验证
+本测试脚本可用于验证以下bug修复：
+
+1. 登录时获取JWT令牌失败
+   - 错误现象：登录后显示两个令牌过期通知
+   - 主要原因：URL路径构建错误，导致请求404
+   - 修复方法：修正URL路径，避免重复的`/api`前缀
+
+2. JWT令牌验证失败
+   - 错误现象：类型1和类型3接口无法正常访问
+   - 修复验证：通过测试相应接口返回的状态码和响应内容
+
+## 自定义测试
+如需修改测试脚本以适应特定需求：
+
+1. 修改基础配置
+```bash
+# 设置基础URL
+LOCAL_URL="http://自定义本地URL"
+PROAPI_URL="http://自定义ProAPI_URL"
+
+# 定义登录凭证
+USERNAME="自定义用户名"
+PASSWORD="自定义密码"
+```
+
+2. 添加新的接口测试
+编辑脚本，添加新的测试函数和相应的调用。 

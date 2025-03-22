@@ -159,7 +159,7 @@ export default function TestJWT() {
     try {
       setError('');
       // 使用proApi路径
-      const response = await fetch('/api/proApi/support/user/account/refreshToken', {
+      const response = await fetch('/api/proApi/support/user/auth/refreshToken', {
         method: 'GET',
         headers: {
           'Content-Type': 'application/json',

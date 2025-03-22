@@ -1,0 +1,371 @@
+# JWT认证升级指南（现有用户）
+
+## 重要变更说明
+
+FastGPT API已进行了JWT认证机制的优化升级，此次升级对已接入的用户有以下重要影响：
+
+1. **令牌中包含了更多信息**：新版JWT令牌现在包含`userId`、`teamId`、`tmbId`和`isRoot`等信息
+2. **API自动使用令牌中的数据**：无需在请求参数中重复提供这些数据
+3. **新增刷新令牌接口**：允许在令牌过期前自动获取新令牌
+4. **增强权限控制**：针对非当前用户数据的操作增加了严格的权限验证
+
+本文档将指导您如何升级现有集成以充分利用这些改进。
+
+## 身份验证变更
+
+### JWT令牌变更
+- 现有的JWT令牌添加了新字段`isRoot`，用于标识用户是否为管理员（root用户）
+- `isRoot`字段用于控制特定API的访问权限，例如使用`tmbId`参数删除应用协作者
+
+### 权限控制增强
+- 部分API开始检查`isRoot`权限，对非管理员用户进行访问限制
+- 非管理员用户无法使用`tmbId`参数删除应用协作者，系统会返回403错误
+
+## 升级步骤
+
+### 1. 令牌内容变更
+
+新版JWT令牌结构如下：
+
+```json
+{
+  "userId": "用户ID",
+  "teamId": "用户的默认团队ID（如果有）",
+  "tmbId": "用户在团队中的成员ID（如果有）",
+  "isRoot": "是否为root用户（布尔值）",
+  "iat": "令牌签发时间",
+  "exp": "令牌过期时间"
+}
+```
+
+**升级操作**：您无需对现有代码进行修改，服务端会自动处理令牌解析。
+
+### 2. 移除不必要的参数传递
+
+以下参数无需再在请求中显式提供，API将自动从令牌中获取：
+
+- `userId`：用户ID（适用于所有API）
+- `teamId`：团队ID（适用于团队相关API）
+- `tmbId`：团队成员ID（适用于团队成员相关API）
+- `isRoot`：是否为管理员用户
+
+**升级操作**：
+
+1. 简化API调用，移除这些冗余参数：
+
+```javascript
+// 旧版调用
+const response = await fetchWithAuth(
+  `https://api.example.com/api/support/user/inform/countUnread?userId=${userId}`
+);
+
+// 新版调用
+const response = await fetchWithAuth(
+  'https://api.example.com/api/support/user/inform/countUnread'
+);
+```
+
+2. 如果您需要获取非当前用户的数据，仍然可以显式提供这些参数：
+
+```javascript
+// 获取特定用户的数据（而非令牌中的用户）
+const response = await fetchWithAuth(
+  `https://api.example.com/api/support/user/inform/getSystemMsgModal?userId=${specificUserId}`
+);
+```
+
+⚠️ **重要安全提醒：**
+
+当您的应用需要对非当前用户的数据进行增加、读取、修改或删除操作时，**必须**先检查当前用户是否有足够的权限。具体做法：
+
+1. 服务端会自动使用令牌中的`isRoot`参数判断用户权限，但客户端也应实施以下安全措施：
+
+```javascript
+// 客户端权限检查
+function checkAdminAccess(operationType, targetUserId) {
+  const currentUser = getCurrentUserInfo(); // 从本地获取当前用户信息
+  
+  // 如果目标用户不是当前用户，必须检查权限
+  if (targetUserId !== currentUser.userId && !currentUser.isRoot) {
+    throw new Error('权限不足，无法操作其他用户数据');
+  }
+  
+  return true;
+}
+
+// 使用示例
+async function modifyUserData(targetUserId, newData) {
+  try {
+    // 先检查权限
+    checkAdminAccess('modify', targetUserId);
+    
+    // 有权限后才执行操作
+    const response = await fetchWithAuth(
+      `https://api.example.com/api/support/user/data/update?userId=${targetUserId}`,
+      {
+        method: 'PUT',
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(newData)
+      }
+    );
+    return response.json();
+  } catch (error) {
+    console.error('操作失败:', error.message);
+    // 显示适当的错误消息给用户
+  }
+}
+```
+
+2. 安全最佳实践：
+   - 总是假设客户端权限检查可能被绕过
+   - 确保服务端实施严格的权限控制
+   - 记录所有涉及跨用户操作的行为日志
+   - 定期审计权限使用情况，及时发现异常
+
+未能正确处理权限检查可能导致严重的安全漏洞，包括数据泄露或未授权访问其他用户信息。
+
+### ⚠️ 服务端权限验证的实现
+
+**注意：** 目前系统的服务端需要在每个处理非当前用户数据的API端点中添加明确的权限验证代码，以确保安全。虽然JWT令牌中包含了`isRoot`字段，但还需要在控制器中添加显式的权限检查逻辑。
+
+以下是服务端控制器中应实现的权限验证模式：
+
+```javascript
+// 在控制器中添加权限验证
+async function updateUserData(req, res) {
+  try {
+    // 从JWT令牌中获取当前用户信息
+    const { userId, isRoot } = req.user;
+    
+    // 获取目标用户ID (可能是其他用户)
+    const targetUserId = req.params.userId || req.query.userId || req.body.userId;
+    
+    // 权限检查：只有当前用户可以修改自己的数据，或者管理员可以修改任何人的数据
+    if (targetUserId !== userId && !isRoot) {
+      return res.status(403).json({
+        code: 403,
+        message: '权限不足，无法操作其他用户数据'
+      });
+    }
+    
+    // 继续处理请求...
+    
+  } catch (error) {
+    console.error('操作失败:', error);
+    res.status(500).json({
+      code: 500,
+      message: '操作失败'
+    });
+  }
+}
+```
+
+所有涉及到对非当前用户数据操作的API端点都必须添加此类权限验证代码。这样即使客户端绕过了权限检查，服务端仍能保证数据安全。
+
+如果您正在开发自己的API端点来操作用户数据，请确保遵循上述模式实施权限验证。
+
+### ⚠️ 重要接口变更说明
+
+在此版本更新中，以下接口有重要变更：
+
+#### 1. 系统消息模态框 `/api/support/user/inform/getSystemMsgModal`
+
+**变更内容**：
+- 现在只能访问当前JWT令牌中用户的系统消息
+- 移除了通过参数指定`userId`的功能
+- 将强制使用JWT令牌中的用户信息
+
+**如何适配**：
+- 移除请求中的`userId`参数
+- 确保请求都使用用户自己的JWT令牌
+
+**行为变化**：
+- 如果尝试使用参数指定其他用户ID，请求将被拒绝
+- 非JWT认证请求将返回401错误
+
+#### 2. 应用协作者删除 `/api/core/app/collaborator/delete`
+
+**变更内容**：
+- 针对`tmbId`参数增加权限检查
+- 只有具有管理员权限（`isRoot=true`）的用户才能使用`tmbId`参数指定其他用户
+- 非管理员用户必须使用自己的身份（令牌中的tmbId）
+
+**如何适配**：
+- 检查应用是否使用了`tmbId`参数删除其他用户的协作者权限
+- 为需要此功能的操作添加管理员权限验证
+- 对于常规用户操作，移除显式的`tmbId`参数，使用令牌中的身份信息
+
+**行为变化**：
+- 非管理员用户尝试使用`tmbId`参数将返回403权限不足错误
+- 如果未提供参数，将使用令牌中的tmbId
+
+### 3. 使用刷新令牌功能
+
+新版添加了令牌刷新功能，可以在不中断用户体验的情况下更新过期令牌。
+
+**升级操作**：添加令牌刷新逻辑：
+
+```javascript
+// JavaScript示例
+async function refreshToken(username, password) {
+  const response = await fetch('https://api.example.com/api/support/user/auth/refreshToken', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({ username, password })
+  });
+  
+  const data = await response.json();
+  if (data.code === 200) {
+    // 更新存储的令牌
+    localStorage.setItem('authToken', data.data.token);
+    return true;
+  } else {
+    throw new Error(data.message);
+  }
+}
+
+// 在 fetchWithAuth 中添加令牌过期自动刷新
+async function fetchWithAuth(url, options = {}) {
+  const token = localStorage.getItem('authToken');
+  if (!token) {
+    throw new Error('未登录');
+  }
+  
+  const headers = {
+    ...options.headers,
+    'Authorization': `Bearer ${token}`
+  };
+  
+  let response = await fetch(url, {
+    ...options,
+    headers
+  });
+  
+  // 处理令牌过期情况
+  if (response.status === 401 && response.statusText.includes('访问令牌已过期')) {
+    // 存储用户凭据或提示用户重新输入
+    const username = localStorage.getItem('username');
+    const password = localStorage.getItem('password');
+    
+    if (username && password) {
+      try {
+        await refreshToken(username, password);
+        // 重试请求
+        const newToken = localStorage.getItem('authToken');
+        headers.Authorization = `Bearer ${newToken}`;
+        response = await fetch(url, {
+          ...options,
+          headers
+        });
+      } catch (error) {
+        // 刷新令牌失败，需要重新登录
+        localStorage.removeItem('authToken');
+        // 重定向到登录页面或提示用户重新登录
+      }
+    } else {
+      // 没有存储用户凭据，无法自动刷新令牌
+      localStorage.removeItem('authToken');
+      // 重定向到登录页面或提示用户重新登录
+    }
+  }
+  
+  return response;
+}
+```
+
+```python
+# Python示例
+def refresh_token(self):
+    if not self.username or not self.password:
+        raise Exception("未设置用户名或密码，无法刷新令牌")
+        
+    response = requests.post(
+        f"{self.base_url}/api/support/user/auth/refreshToken",
+        json={"username": self.username, "password": self.password}
+    )
+    data = response.json()
+    
+    if data["code"] == 200:
+        self.token = data["data"]["token"]
+        return True
+    else:
+        raise Exception(data["message"])
+
+def request(self, method, endpoint, **kwargs):
+    if not self.token:
+        raise Exception("未登录")
+    
+    headers = kwargs.get("headers", {})
+    headers["Authorization"] = f"Bearer {self.token}"
+    kwargs["headers"] = headers
+    
+    response = requests.request(
+        method,
+        f"{self.base_url}{endpoint}",
+        **kwargs
+    )
+    
+    # 处理令牌过期情况
+    if response.status_code == 401 and "访问令牌已过期" in response.text:
+        try:
+            self.refresh_token()
+            # 更新请求头中的令牌
+            kwargs["headers"]["Authorization"] = f"Bearer {self.token}"
+            # 重试请求
+            return requests.request(
+                method,
+                f"{self.base_url}{endpoint}",
+                **kwargs
+            )
+        except:
+            self.token = None
+            # 提示用户重新登录
+    
+    return response
+```
+
+### 4. 测试升级后的集成
+
+请测试以下场景以确保升级成功：
+
+1. **基本认证测试**：
+   - 使用新版登录接口获取令牌
+   - 使用令牌访问受保护的API
+   - 验证响应是否正确
+
+2. **令牌刷新测试**：
+   - 模拟令牌过期场景
+   - 验证刷新令牌功能是否正常工作
+   - 确认刷新后的请求是否成功
+
+3. **参数简化测试**：
+   - 移除请求中的`userId`、`teamId`等参数
+   - 验证API是否仍能正常工作
+   - 确认响应数据是否与之前一致
+
+## 常见问题
+
+### 1. 我需要修改现有代码吗？
+
+不是必需的。旧版API调用方式（显式提供userId等参数）仍然兼容，但我们建议您升级以简化代码并利用新功能。
+
+### 2. 如何确保令牌安全存储？
+
+为了安全起见，请勿在客户端存储明文密码。我们建议以下方法之一：
+- 仅在内存中临时保存用户凭据，用于令牌刷新
+- 使用安全的加密存储机制
+- 当令牌过期时，引导用户重新输入凭据
+
+### 3. 令牌过期时间是否变化？
+
+JWT令牌的有效期仍为24小时，但现在您可以使用刷新令牌接口在令牌过期前自动获取新令牌，无需用户重新登录。
+
+### 4. 如何调试令牌内容？
+
+您可以使用在线工具（如jwt.io）解码JWT令牌以查看其内容。这对于理解和调试令牌中包含的数据非常有用。
+
+## 联系与支持
+
+如果您在升级过程中遇到任何问题，请联系FG-proApi技术支持团队获取帮助。 
