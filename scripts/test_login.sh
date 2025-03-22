@@ -249,7 +249,7 @@ check_jwt_token() {
 
 # 测试直接调用 getJwtToken 接口
 test_get_jwt_token_api() {
-  echo -e "${YELLOW}测试 getJwtToken 接口${NC}"
+  echo -e "${YELLOW}测试 getJwtToken 接口${NC} url: $LOCAL_URL/api/support/user/account/loginByPassword"
   
   # 先登录获取Cookie
   login_response=$(curl -s -c "$TEMP_FILE" -w "\n%{http_code}" "${LOCAL_URL}/api/support/user/account/loginByPassword" \
