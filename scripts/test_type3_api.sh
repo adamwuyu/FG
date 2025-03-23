@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # 类型3接口测试脚本
-# 用途：测试不含proApi但需调用proApi的接口（类型3接口）
+# 用途：测试不含proApi但需调用proApi服务的接口
 
 # 颜色定义
 GREEN='\033[0;32m'
@@ -10,31 +10,45 @@ YELLOW='\033[0;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-# 设置基础URL
+# 测试配置
 LOCAL_URL="http://localhost:3000"
 PROAPI_URL="http://localhost:3002"
-
-# 定义登录凭证
 USERNAME="root"
 PASSWORD="IloveGPT!"
+TEMP_FILE="/tmp/cookies.txt"
+MAX_ERROR_LENGTH=200  # 错误消息最大长度限制
 
-# 临时文件
-TEMP_FILE=$(mktemp)
-trap 'rm -f $TEMP_FILE' EXIT
+# 清理临时文件
+cleanup() {
+  rm -f "$TEMP_FILE"
+}
 
-# 测试函数：测试未读消息统计接口
-test_count_unread_msgs() {
-  local cookies=$1
-  local token=$2
-  local endpoint="/api/support/user/inform/countUnread"
+# 确保脚本结束时清理临时文件
+trap cleanup EXIT
+
+# 处理错误响应
+format_error_response() {
+  local body="$1"
+  # 检查是否含有HTML标签
+  if echo "$body" | grep -q "<html"; then
+    echo "[HTML响应] - 响应包含HTML代码，可能是服务端错误页面。"
+  else
+    # 限制错误消息长度
+    echo "$body" | cut -c 1-$MAX_ERROR_LENGTH
+    if [ ${#body} -gt $MAX_ERROR_LENGTH ]; then
+      echo "...(已截断剩余内容)"
+    fi
+  fi
+}
+
+# 测试未读消息接口
+test_unread_messages() {
+  echo -e "${YELLOW}测试未读消息接口 /api/support/user/inform/countUnread${NC}"
   
-  echo -e "${YELLOW}测试类型3接口 (内部调用proApi): $endpoint${NC}"
-  echo -e "${BLUE}请求URL: ${LOCAL_URL}${endpoint}${NC}"
-  
-  # 发送请求，提供Cookie认证
-  response=$(curl -s -w "\n%{http_code}" "${LOCAL_URL}${endpoint}" \
-    -H "Content-Type: application/json" \
-    -b "$cookies")
+  # 发送请求
+  response=$(curl -s -w "\n%{http_code}" "${LOCAL_URL}/api/support/user/inform/countUnread" \
+    -H "Authorization: Bearer $JWT_TOKEN" \
+    -b "$TEMP_FILE")
   
   # 提取状态码和响应体
   status_code=$(echo "$response" | tail -n1)
@@ -43,30 +57,26 @@ test_count_unread_msgs() {
   # 打印响应状态
   if [ "$status_code" -ge 200 ] && [ "$status_code" -lt 300 ]; then
     echo -e "${GREEN}状态码: $status_code - 成功${NC}"
-    echo "响应内容: $body"
+    echo "响应简要内容: $(echo $body | cut -c 1-100)..."
   else
     echo -e "${RED}状态码: $status_code - 失败${NC}"
-    echo "错误响应: $body"
+    echo -n "错误响应: "
+    format_error_response "$body"
   fi
   
   echo "---------------------------------"
 }
 
-# 测试函数：测试系统插件模板接口
+# 测试系统插件模板接口
 test_system_plugin_templates() {
-  local cookies=$1
-  local token=$2
-  local endpoint="/api/core/app/plugin/getSystemPluginTemplates"
+  echo -e "${YELLOW}测试系统插件模板接口 /api/core/app/plugin/getSystemPluginTemplates${NC}"
   
-  echo -e "${YELLOW}测试类型3接口 (内部调用proApi): $endpoint${NC}"
-  echo -e "${BLUE}请求URL: ${LOCAL_URL}${endpoint}${NC}"
-  
-  # 发送请求，提供Cookie认证
-  response=$(curl -s -w "\n%{http_code}" "${LOCAL_URL}${endpoint}" \
-    -X POST \
+  # 发送请求
+  response=$(curl -s -w "\n%{http_code}" "${LOCAL_URL}/api/core/app/plugin/getSystemPluginTemplates" \
+    -H "Authorization: Bearer $JWT_TOKEN" \
     -H "Content-Type: application/json" \
-    -b "$cookies" \
-    -d '{"parentId":null}')
+    -b "$TEMP_FILE" \
+    -d "{}")
   
   # 提取状态码和响应体
   status_code=$(echo "$response" | tail -n1)
@@ -78,27 +88,24 @@ test_system_plugin_templates() {
     echo "响应简要内容: $(echo $body | cut -c 1-100)..."
   else
     echo -e "${RED}状态码: $status_code - 失败${NC}"
-    echo "错误响应: $body"
+    echo -n "错误响应: "
+    format_error_response "$body"
   fi
   
   echo "---------------------------------"
 }
 
-# 测试函数：测试获取应用列表接口
+# 测试应用列表接口
 test_app_list() {
-  local cookies=$1
-  local token=$2
-  local endpoint="/api/core/app/list"
+  echo -e "${YELLOW}测试应用列表接口 /api/core/app/list${NC}"
   
-  echo -e "${YELLOW}测试类型3接口 (内部调用proApi): $endpoint${NC}"
-  echo -e "${BLUE}请求URL: ${LOCAL_URL}${endpoint}${NC}"
-  
-  # 发送请求，提供Cookie认证
-  response=$(curl -s -w "\n%{http_code}" "${LOCAL_URL}${endpoint}" \
+  # 发送请求
+  response=$(curl -s -w "\n%{http_code}" "${LOCAL_URL}/api/core/app/list" \
     -X POST \
+    -H "Authorization: Bearer $JWT_TOKEN" \
     -H "Content-Type: application/json" \
-    -b "$cookies" \
-    -d '{}')
+    -b "$TEMP_FILE" \
+    -d "{}")
   
   # 提取状态码和响应体
   status_code=$(echo "$response" | tail -n1)
@@ -110,31 +117,24 @@ test_app_list() {
     echo "响应简要内容: $(echo $body | cut -c 1-100)..."
   else
     echo -e "${RED}状态码: $status_code - 失败${NC}"
-    echo "错误响应: $body"
+    echo -n "错误响应: "
+    format_error_response "$body"
   fi
   
   echo "---------------------------------"
 }
 
-# 测试函数：测试用户钱包使用情况统计
-test_wallet_usage_statistics() {
-  local cookies=$1
-  local token=$2
-  local endpoint="/api/support/wallet/usage/statistics"
+# 测试钱包使用统计
+test_wallet_usage() {
+  echo -e "${YELLOW}测试钱包使用统计接口 /api/support/wallet/usage/statistics${NC}"
   
-  echo -e "${YELLOW}测试类型3接口 (内部调用proApi): $endpoint${NC}"
-  echo -e "${BLUE}请求URL: ${LOCAL_URL}${endpoint}${NC}"
-  
-  # 获取当前月份的第一天和最后一天
-  local first_day=$(date -j -f "%Y-%m-%d" "$(date +%Y-%m)-01" +%s)
-  local last_day=$(date -j -f "%Y-%m-%d" "$(date -d "$(date +%Y-%m-01) + 1 month - 1 day" +%Y-%m-%d)" +%s 2>/dev/null || date -j -v+1m -v-1d -f "%Y-%m-%d" "$(date +%Y-%m)-01" +%s)
-  
-  # 发送请求，提供Cookie认证
-  response=$(curl -s -w "\n%{http_code}" "${LOCAL_URL}${endpoint}" \
+  # 发送请求
+  response=$(curl -s -w "\n%{http_code}" "${LOCAL_URL}/api/support/wallet/usage/statistics" \
     -X POST \
+    -H "Authorization: Bearer $JWT_TOKEN" \
     -H "Content-Type: application/json" \
-    -b "$cookies" \
-    -d "{\"start\":$first_day,\"end\":$last_day}")
+    -b "$TEMP_FILE" \
+    -d "{}")
   
   # 提取状态码和响应体
   status_code=$(echo "$response" | tail -n1)
@@ -146,25 +146,22 @@ test_wallet_usage_statistics() {
     echo "响应简要内容: $(echo $body | cut -c 1-100)..."
   else
     echo -e "${RED}状态码: $status_code - 失败${NC}"
-    echo "错误响应: $body"
+    echo -n "错误响应: "
+    format_error_response "$body"
   fi
   
   echo "---------------------------------"
 }
 
-# 测试函数：测试团队接口
-test_team_list() {
-  local cookies=$1
-  local token=$2
-  local endpoint="/api/support/user/team/info"
+# 测试团队信息接口
+test_team_info() {
+  echo -e "${YELLOW}测试团队信息接口 /api/support/user/team/info${NC}"
   
-  echo -e "${YELLOW}测试类型3接口 (内部调用proApi): $endpoint${NC}"
-  echo -e "${BLUE}请求URL: ${LOCAL_URL}${endpoint}${NC}"
-  
-  # 发送请求，提供Cookie认证
-  response=$(curl -s -w "\n%{http_code}" "${LOCAL_URL}${endpoint}" \
+  # 发送请求
+  response=$(curl -s -w "\n%{http_code}" "${LOCAL_URL}/api/support/user/team/info" \
+    -H "Authorization: Bearer $JWT_TOKEN" \
     -H "Content-Type: application/json" \
-    -b "$cookies")
+    -b "$TEMP_FILE")
   
   # 提取状态码和响应体
   status_code=$(echo "$response" | tail -n1)
@@ -176,25 +173,45 @@ test_team_list() {
     echo "响应简要内容: $(echo $body | cut -c 1-100)..."
   else
     echo -e "${RED}状态码: $status_code - 失败${NC}"
-    echo "错误响应: $body"
+    echo -n "错误响应: "
+    format_error_response "$body"
   fi
   
   echo "---------------------------------"
 }
 
-# 测试所有接口时同时携带Cookie和Token
-test_with_cookie_and_token() {
-  local cookies=$1
-  local token=$2
-  local endpoint="/api/support/user/inform/countUnread"
+# 测试无Cookie访问
+test_no_cookie_access() {
+  echo -e "${YELLOW}测试无Cookie访问（应失败）: /api/support/user/inform/countUnread${NC}"
   
-  echo -e "${YELLOW}测试同时携带Cookie和Token: $endpoint${NC}"
+  # 发送请求（仅带JWT令牌，不带Cookie）
+  response=$(curl -s -w "\n%{http_code}" "${LOCAL_URL}/api/support/user/inform/countUnread" \
+    -H "Authorization: Bearer $JWT_TOKEN")
   
-  # 发送请求，同时提供Cookie和Token认证
-  response=$(curl -s -w "\n%{http_code}" "${LOCAL_URL}${endpoint}" \
-    -H "Content-Type: application/json" \
-    -H "Authorization: Bearer $token" \
-    -b "$cookies")
+  # 提取状态码和响应体
+  status_code=$(echo "$response" | tail -n1)
+  body=$(echo "$response" | sed '$d')
+  
+  # 打印响应状态（期望失败，接受401、403或500状态码）
+  if [ "$status_code" -eq 401 ] || [ "$status_code" -eq 403 ] || [ "$status_code" -eq 500 ]; then
+    echo -e "${GREEN}状态码: $status_code - 成功失败（符合预期）${NC}"
+    echo "错误响应: $(echo $body | cut -c 1-100)..."
+  else
+    echo -e "${RED}状态码: $status_code - 未按预期失败${NC}"
+    echo -n "错误响应: "
+    format_error_response "$body"
+  fi
+  
+  echo "---------------------------------"
+}
+
+# 测试无令牌访问
+test_no_token_access() {
+  echo -e "${YELLOW}测试无JWT令牌访问（应降级到仅Cookie验证）: /api/support/user/inform/countUnread${NC}"
+  
+  # 发送请求（仅带Cookie，不带JWT令牌）
+  response=$(curl -s -w "\n%{http_code}" "${LOCAL_URL}/api/support/user/inform/countUnread" \
+    -b "$TEMP_FILE")
   
   # 提取状态码和响应体
   status_code=$(echo "$response" | tail -n1)
@@ -202,17 +219,18 @@ test_with_cookie_and_token() {
   
   # 打印响应状态
   if [ "$status_code" -ge 200 ] && [ "$status_code" -lt 300 ]; then
-    echo -e "${GREEN}状态码: $status_code - 成功${NC}"
-    echo "响应内容: $body"
+    echo -e "${GREEN}状态码: $status_code - 成功（降级到本地实现）${NC}"
+    echo "响应简要内容: $(echo $body | cut -c 1-100)..."
   else
     echo -e "${RED}状态码: $status_code - 失败${NC}"
-    echo "错误响应: $body"
+    echo -n "错误响应: "
+    format_error_response "$body"
   fi
   
   echo "---------------------------------"
 }
 
-# 主函数：运行所有测试
+# 主函数
 main() {
   echo -e "${GREEN}===== 类型3接口测试 =====${NC}"
   echo "本地服务URL: $LOCAL_URL"
@@ -248,35 +266,34 @@ main() {
   if [ "$login_status" -ge 200 ] && [ "$login_status" -lt 300 ]; then
     echo -e "${GREEN}登录成功 - 状态码: $login_status${NC}"
     
-    # 从登录响应中提取JWT令牌
-    token=$(echo "$login_body" | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
+    # 从响应中提取JWT令牌
+    JWT_TOKEN=$(echo "$login_body" | grep -o '"token":"[^"]*"' | cut -d':' -f2 | tr -d '"')
     
-    if [ -z "$token" ]; then
-      echo -e "${RED}JWT令牌未获取或为空${NC}"
+    if [ -n "$JWT_TOKEN" ]; then
+      echo -e "${GREEN}成功获取JWT令牌${NC}"
+      
+      # 测试基本功能（带Cookie和JWT令牌）
+      test_unread_messages
+      test_system_plugin_templates
+      test_app_list
+      test_wallet_usage
+      test_team_info
+      
+      # 测试认证场景
+      test_no_cookie_access
+      test_no_token_access
     else
-      echo -e "${GREEN}JWT令牌已获取: $(echo $token | cut -c 1-15)...${NC}"
+      echo -e "${RED}未能从登录响应中获取JWT令牌${NC}"
+      echo -n "响应内容: "
+      format_error_response "$login_body"
     fi
-    
-    # 获取Cookie文件内容
-    cookie_content=$(cat "$TEMP_FILE")
-    echo -e "${BLUE}Cookie内容: ${NC}"
-    echo "$cookie_content"
-    
-    # 测试各类型3接口
-    test_count_unread_msgs "$TEMP_FILE" "$token"
-    test_system_plugin_templates "$TEMP_FILE" "$token"
-    test_app_list "$TEMP_FILE" "$token"
-    test_wallet_usage_statistics "$TEMP_FILE" "$token"
-    test_team_list "$TEMP_FILE" "$token"
-    
-    # 测试同时使用Cookie和Token
-    test_with_cookie_and_token "$TEMP_FILE" "$token"
   else
     echo -e "${RED}登录失败 - 状态码: $login_status${NC}"
-    echo "错误响应: $login_body"
+    echo -n "错误响应: "
+    format_error_response "$login_body"
   fi
   
-  echo -e "${GREEN}测试完成!${NC}"
+  echo -e "${GREEN}===== 测试完成 =====${NC}"
 }
 
 # 执行主函数

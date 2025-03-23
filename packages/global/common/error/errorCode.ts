@@ -64,7 +64,7 @@ export const ERROR_RESPONSE: Record<
   }
 > = {
   [ERROR_ENUM.unAuthorization]: {
-    code: 403,
+    code: 401,
     statusText: ERROR_ENUM.unAuthorization,
     message: i18nT('common:code_error.error_message.403'),
     data: null
