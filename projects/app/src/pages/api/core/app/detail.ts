@@ -12,8 +12,8 @@ async function handler(req: NextApiRequest, res: NextApiResponse<any>) {
   if (!appId) {
     Promise.reject(CommonErrEnum.missingParams);
   }
-  // 凭证校验
-  const { app } = await authApp({ req, authToken: true, appId, per: ReadPermissionVal });
+  // 凭证校验 - 使用Cookie认证（类型2接口）
+  const { app } = await authApp({ req, appId, per: ReadPermissionVal });
 
   if (!app.permission.hasWritePer) {
     return {

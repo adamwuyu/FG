@@ -326,6 +326,9 @@ export async function parseHeaderCert({
 
   const { cookie, token, rootkey, authorization } = (req.headers || {}) as ReqHeaderAuthType;
 
+  // 如果未指定任何认证方式，默认使用Cookie认证
+  const useCookieAuth = !authToken && !authRoot && !authApiKey;
+
   const { uid, teamId, tmbId, appId, openApiKey, authType, isRoot, sourceName } =
     await (async () => {
       if (authApiKey && authorization) {
@@ -341,9 +344,31 @@ export async function parseHeaderCert({
           sourceName: authResponse.sourceName
         };
       }
-      if (authToken && (token || cookie)) {
-        // user token(from fastgpt web)
-        const res = await authCookieToken(cookie, token);
+      if ((useCookieAuth || authToken) && cookie) {
+        // 优先使用Cookie验证（类型2接口）
+        try {
+          const res = await authCookieToken(cookie);
+          return {
+            uid: res.userId,
+            teamId: res.teamId,
+            tmbId: res.tmbId,
+            appId: '',
+            openApiKey: '',
+            authType: AuthUserTypeEnum.token,
+            isRoot: res.isRoot
+          };
+        } catch (error) {
+          // 如果authToken为true，则在Cookie验证失败时尝试JWT验证
+          // 如果authToken为false或未指定，则不尝试JWT验证，直接抛出错误
+          if (!authToken) {
+            throw error;
+          }
+          // 对于authToken为true的情况，继续尝试JWT验证
+        }
+      }
+      if (authToken && token) {
+        // 尝试JWT验证（类型1接口或Cookie验证失败的特殊情况）
+        const res = await authCookieToken(undefined, token);
         return {
           uid: res.userId,
           teamId: res.teamId,

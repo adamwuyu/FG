@@ -21,7 +21,8 @@ type authModeType = {
   per?: PermissionValueType;
 };
 
-export type AuthModeType = RequireAtLeastOne<authModeType, 'authApiKey' | 'authRoot' | 'authToken'>;
+// 修改为允许不指定认证类型，默认将使用Cookie认证
+export type AuthModeType = authModeType;
 
 export type AuthResponseType<T extends Permission = Permission> = {
   userId: string;

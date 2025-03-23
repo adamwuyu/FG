@@ -75,8 +75,7 @@
    - `/api/support/user/account/tokenLogin` - 令牌登录
 
 2. **应用管理接口**
-   - `/api/core/app/detail` - 获取应用详情
-   - `/api/core/app/list` - 获取应用列表  
+   - `/api/core/app/detail` - 获取应用详情  
    - `/api/core/app/create` - 创建应用
    - `/api/core/app/update` - 更新应用
 
@@ -133,6 +132,14 @@
    - `/api/support/outLink/wecom/[token]` - 企业微信集成
    - `/api/support/outLink/dingtalk/[token]` - 钉钉集成
    - `/api/support/outLink/feishu/[token]` - 飞书集成
+
+4. **获取应用列表**
+   - `/api/core/app/list`
+   尽管该接口本身没有 "proApi" 字样，看起来像一个普通的类型2接口，但通过检查其依赖关系，我发现它实际上是一个类型3接口，原因如下：
+   从 service/support/permission/auth/team.ts 文件中可以看到，团队认证相关的功能使用了 plusRequest 模块与 proApi 服务通信：
+ 
+   app/list.ts 接口依赖 authUserPer 函数，该函数会调用 getTmbInfoByTmbId 获取团队成员信息，而在执行相关权限检查时，可能需要通过 proApi 服务获取与团队标签和权限相关的数据。
+   该接口还使用了 getGroupsByTmbId 和 getOrgIdSetWithParentByTmbId 函数，这些函数可能也需要与 proApi 服务通信来获取组织和团队数据。
 
 ##### 当前实现分析
 1. **认证机制**：
