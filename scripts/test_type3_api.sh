@@ -12,7 +12,7 @@ NC='\033[0m' # No Color
 
 # 测试配置
 LOCAL_URL="http://localhost:3000"
-PROAPI_URL="http://localhost:3002"
+PROAPI_URL="http://localhost:3002/api"
 USERNAME="root"
 PASSWORD="IloveGPT!"
 TEMP_FILE="/tmp/cookies.txt"
@@ -230,6 +230,79 @@ test_no_token_access() {
   echo "---------------------------------"
 }
 
+# 测试同时使用Cookie和JWT令牌
+test_both_cookie_and_token() {
+  echo -e "${YELLOW}测试同时使用Cookie和JWT令牌访问: /api/support/user/inform/countUnread${NC}"
+  
+  # 使用HTTP_PROXY环境变量来监听请求（需要在服务器端配置支持）
+  # 记录请求日志
+  rm -f /tmp/request_log.txt 2>/dev/null
+  echo "正在捕获HTTP请求..."
+  
+  # 发送请求到本地接口（同时带Cookie和JWT令牌）
+  response=$(curl -s -w "\n%{http_code}" "${LOCAL_URL}/api/support/user/inform/countUnread" \
+    -H "Authorization: Bearer $JWT_TOKEN" \
+    -b "$TEMP_FILE" \
+    -v 2>&1)
+  
+  # 提取状态码和响应体
+  status_code=$(echo "$response" | tail -n1)
+  verbose_output=$(echo "$response" | grep -v "^{" || echo "")
+  json_body=$(echo "$response" | grep "^{" || echo "{}")
+  
+  # 显示详细输出以便调试
+  echo -e "${BLUE}详细输出:${NC}"
+  echo "$verbose_output" | head -n 20
+  
+  # 如果详细输出中包含ProAPI的地址，则认为调用了ProAPI
+  if echo "$verbose_output" | grep -q "localhost:3002"; then
+    echo -e "${GREEN}检测到对ProAPI的调用${NC}"
+    
+    # 尝试提取Authorization头信息
+    auth_header=$(echo "$verbose_output" | grep -A 5 "localhost:3002" | grep -i "Authorization:" || echo "未找到Authorization头")
+    echo "Authorization头: $auth_header"
+  else
+    echo -e "${YELLOW}未检测到对ProAPI的调用，可能需要检查服务器日志${NC}"
+  fi
+  
+  # 打印响应状态
+  if [ "$status_code" -ge 200 ] && [ "$status_code" -lt 300 ]; then
+    echo -e "${GREEN}状态码: $status_code - 成功${NC}"
+    echo "响应简要内容: $(echo $json_body | cut -c 1-100)..."
+  else
+    echo -e "${RED}状态码: $status_code - 失败${NC}"
+    echo -n "错误响应: "
+    format_error_response "$json_body"
+  fi
+  
+  echo "---------------------------------"
+}
+
+# 直接测试ProAPI接口
+test_direct_proapi() {
+  echo -e "${YELLOW}直接测试ProAPI接口: /support/user/inform/countUnread${NC}"
+  
+  # 发送请求直接到ProAPI服务（仅带JWT令牌）
+  response=$(curl -s -w "\n%{http_code}" "${PROAPI_URL}/support/user/inform/countUnread" \
+    -H "Authorization: Bearer $JWT_TOKEN")
+  
+  # 提取状态码和响应体
+  status_code=$(echo "$response" | tail -n1)
+  body=$(echo "$response" | sed '$d')
+  
+  # 打印响应状态
+  if [ "$status_code" -ge 200 ] && [ "$status_code" -lt 300 ]; then
+    echo -e "${GREEN}状态码: $status_code - 成功${NC}"
+    echo "响应简要内容: $(echo $body | cut -c 1-100)..."
+  else
+    echo -e "${RED}状态码: $status_code - 失败${NC}"
+    echo -n "错误响应: "
+    format_error_response "$body"
+  fi
+  
+  echo "---------------------------------"
+}
+
 # 主函数
 main() {
   echo -e "${GREEN}===== 类型3接口测试 =====${NC}"
@@ -241,7 +314,7 @@ main() {
   
   # 测试ProAPI服务可达性
   echo -e "${YELLOW}测试 ProAPI 服务是否可达${NC}"
-  proapi_response=$(curl -s -w "\n%{http_code}" "$PROAPI_URL/" || echo "连接失败\n000")
+  proapi_response=$(curl -s -w "\n%{http_code}" "${PROAPI_URL%/api}/" || echo "连接失败\n000")
   proapi_status=$(echo "$proapi_response" | tail -n1)
   
   if [ "$proapi_status" -ge 200 ] && [ "$proapi_status" -lt 300 ]; then
@@ -282,6 +355,12 @@ main() {
       # 测试认证场景
       test_no_cookie_access
       test_no_token_access
+      
+      # 测试同时使用Cookie和JWT令牌（新增）
+      test_both_cookie_and_token
+      
+      # 直接测试ProAPI接口
+      test_direct_proapi
     else
       echo -e "${RED}未能从登录响应中获取JWT令牌${NC}"
       echo -n "响应内容: "

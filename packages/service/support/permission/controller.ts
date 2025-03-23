@@ -261,11 +261,16 @@ export function authJWT(token: string) {
 // 从请求头获取JWT令牌，用于类型3接口调用proApi服务
 export function getJwtTokenFromReq(req: any): string | null {
   const { authorization } = (req.headers || {}) as ReqHeaderAuthType;
-  if (!authorization) return null;
+
+  if (!authorization) {
+    return null;
+  }
 
   // 从 "Bearer xxx" 格式中提取令牌
   const match = authorization.match(/^Bearer\s+(.+)$/);
-  if (!match) return null;
+  if (!match) {
+    return null;
+  }
 
   return match[1];
 }

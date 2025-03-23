@@ -15,21 +15,26 @@ export default async function handler(req: NextApiRequest, res: NextApiResponse)
     // 使用Cookie认证用户身份
     const { userId } = await authCert({ req });
 
-    // 使用type3ApiHelper访问proApi服务
-    const proApiClient = getProApiClient(req);
-
+    // 从ProAPI获取未读消息数
     try {
-      // 尝试调用proApi服务
-      const result = await proApiClient.GET('/support/user/inform/countUnread', { userId });
+      // 创建proApi客户端
+      const proApiClient = getProApiClient(req);
+
+      // 从proApi获取未读消息数
+      const result = await proApiClient.GET<{ unreadCount: number }>(
+        '/support/user/inform/countUnread'
+      );
 
       return jsonRes(res, {
         data: result
       });
     } catch (error: any) {
-      // 如果是"未提供访问令牌"错误，降级到本地实现
-      if (error.message === '未提供访问令牌') {
-        console.log('降级到本地实现', error.message);
-        // 本地实现：返回默认的未读消息数量为0
+      console.error('从proApi获取未读消息数失败', error);
+
+      // 只有在错误信息明确表示访问令牌问题时才降级到本地实现
+      if (error.message && error.message.includes('未提供访问令牌')) {
+        console.log('无法获取未读消息数，降级到本地实现');
+        // 本地实现：返回0未读消息
         return jsonRes(res, {
           data: { unreadCount: 0 }
         });
