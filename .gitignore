@@ -61,3 +61,5 @@ files/helm/fastgpt/values.yaml
 
 .windsurfrules
 cookies.txt
+
+*.log
