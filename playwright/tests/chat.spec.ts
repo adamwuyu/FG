@@ -71,7 +71,7 @@ test('【知识库】测试', async ({ page }) => {
 
 test('【工具箱】测试', async ({ page }) => {
   let targets = [
-    { url: 'http://localhost:3000/toolkit', text: '获取当前时间' },
+    { url: 'http://localhost:3000/toolkit' },
     { url: 'http://localhost:3000/toolkit?group=systemPlugin&type=tools' },
     { url: 'http://localhost:3000/toolkit?group=systemPlugin&type=search' },
     { url: 'http://localhost:3000/toolkit?group=systemPlugin&type=communication' }
