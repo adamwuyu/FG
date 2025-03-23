@@ -268,16 +268,16 @@ test_get_jwt_token_api() {
   fi
   
   # 使用Cookie直接调用getJwtToken
-  response=$(curl -s -w "\n%{http_code}" "${LOCAL_URL}/api/support/user/account/getJwtToken" \
+  response=$(curl -s -w "\n%{http_code}" "${LOCAL_URL}/api/proApi/support/user/auth/login" \
     -X POST \
     -H "Content-Type: application/json" \
     -b "$TEMP_FILE" \
-    -d "{\"account\":\"$USERNAME\",\"password\":\"$PASSWORD\"}")
+    -d "{\"username\":\"$USERNAME\",\"password\":\"$PASSWORD\"}")
   
   status_code=$(echo "$response" | tail -n1)
   body=$(echo "$response" | sed '$d')
   
-  echo -e "${BLUE}请求URL: ${LOCAL_URL}/api/support/user/account/getJwtToken${NC}"
+  echo -e "${BLUE}请求URL: ${LOCAL_URL}/api/proApi/support/user/auth/login${NC}"
   
   # 打印响应状态
   if [ "$status_code" -ge 200 ] && [ "$status_code" -lt 300 ]; then
@@ -311,57 +311,6 @@ test_proapi_reachable() {
     echo "响应: $body"
     return 1
   fi
-}
-
-# 测试调用 ProAPI 的 getJwtToken 接口
-test_proapi_get_jwt_token() {
-  echo -e "${YELLOW}直接测试 ProAPI 的 登录接口${NC}"
-  
-  # 测试直接向ProAPI请求登录接口
-  response=$(curl -s -w "\n%{http_code}" "${PROAPI_URL}/api/support/user/auth/login" \
-    -X POST \
-    -H "Content-Type: application/json" \
-    -d "{\"username\":\"$USERNAME\",\"password\":\"$PASSWORD\"}")
-  
-  status_code=$(echo "$response" | tail -n1)
-  body=$(echo "$response" | sed '$d')
-  
-  echo -e "${BLUE}请求URL: ${PROAPI_URL}/api/support/user/auth/login${NC}"
-  
-  # 打印响应状态
-  if [ "$status_code" -ge 200 ] && [ "$status_code" -lt 300 ]; then
-    echo -e "${GREEN}状态码: $status_code - 成功${NC}"
-    echo "响应简要内容: $(echo $body | cut -c 1-100)..."
-    
-    # 从登录响应中提取JWT令牌
-    token=$(echo "$body" | grep -o '"token":"[^"]*"' | cut -d'"' -f4)
-    if [ ! -z "$token" ]; then
-      echo -e "${GREEN}从ProAPI获取到JWT令牌${NC}"
-      
-      # 使用该令牌测试一个API
-      echo -e "${YELLOW}使用ProAPI令牌测试用户信息接口${NC}"
-      
-      me_response=$(curl -s -w "\n%{http_code}" "${PROAPI_URL}/api/support/user/auth/me" \
-        -H "Authorization: Bearer $token" \
-        -H "Content-Type: application/json")
-      
-      me_status=$(echo "$me_response" | tail -n1)
-      me_body=$(echo "$me_response" | sed '$d')
-      
-      if [ "$me_status" -ge 200 ] && [ "$me_status" -lt 300 ]; then
-        echo -e "${GREEN}用户信息请求成功 - 状态码: $me_status${NC}"
-        echo "响应: $me_body"
-      else
-        echo -e "${RED}用户信息请求失败 - 状态码: $me_status${NC}"
-        echo "错误响应: $me_body"
-      fi
-    fi
-  else
-    echo -e "${RED}状态码: $status_code - 失败${NC}"
-    echo "错误响应: $body"
-  fi
-  
-  echo "---------------------------------"
 }
 
 # 主函数：运行所有测试
