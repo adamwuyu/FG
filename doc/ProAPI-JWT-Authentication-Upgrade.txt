@@ -345,6 +345,11 @@ def request(self, method, endpoint, **kwargs):
    - 验证API是否仍能正常工作
    - 确认响应数据是否与之前一致
 
+4. **插件组API测试**：
+   - 使用JWT令牌访问新的`/api/core/app/plugin/getPluginGroups`接口
+   - 验证返回的插件组数据结构是否符合预期
+   - 测试未授权访问的错误处理
+
 ## 常见问题
 
 ### 1. 我需要修改现有代码吗？

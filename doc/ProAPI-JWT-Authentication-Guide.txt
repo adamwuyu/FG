@@ -326,7 +326,13 @@ async function getUnreadCount() {
   const data = await response.json();
   return data.data.unreadCount;
 }
-```
+
+// 获取插件组列表
+async function getPluginGroups() {
+  const response = await fetchWithAuth('https://api.example.com/api/core/app/plugin/getPluginGroups');
+  const data = await response.json();
+  return data.data;
+}
 
 ### Python示例
 
@@ -415,12 +421,18 @@ class ApiClient:
         data = response.json()
         return data["data"]["unreadCount"]
 
+    def get_plugin_groups(self):
+        response = self.request("GET", "/api/core/app/plugin/getPluginGroups")
+        data = response.json()
+        return data["data"]
+
 # 使用示例
 client = ApiClient("https://api.example.com")
 client.login("username", "password")
 teams = client.get_team_list()
 unread = client.get_unread_count()
-print(f"Teams: {teams}, Unread: {unread}")
+plugin_groups = client.get_plugin_groups()
+print(f"Teams: {teams}, Unread: {unread}, Plugin Groups: {plugin_groups}")
 ```
 
 ## 常见问题
