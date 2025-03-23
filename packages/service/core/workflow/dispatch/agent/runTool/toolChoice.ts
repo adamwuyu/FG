@@ -10,7 +10,7 @@ import {
   ChatCompletionAssistantMessageParam
 } from '@fastgpt/global/core/ai/type';
 import { NextApiResponse } from 'next';
-import { responseWriteController } from '../../../../../common/response';
+import { responseWriteController } from '../../../../../common/response/index';
 import { SseResponseEventEnum } from '@fastgpt/global/core/workflow/runtime/constants';
 import { textAdaptGptResponse } from '@fastgpt/global/core/workflow/runtime/utils';
 import { ChatCompletionRequestMessageRoleEnum } from '@fastgpt/global/core/ai/constants';

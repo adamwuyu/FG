@@ -1,0 +1,76 @@
+diff --git a/packages/service/core/workflow/dispatch/agent/runTool/functionCall.ts b/packages/service/core/workflow/dispatch/agent/runTool/functionCall.ts
+index 1ae995a1..79e3f4fd 100644
+--- a/packages/service/core/workflow/dispatch/agent/runTool/functionCall.ts
++++ b/packages/service/core/workflow/dispatch/agent/runTool/functionCall.ts
+@@ -10,7 +10,7 @@ import {
+   ChatCompletionAssistantMessageParam
+ } from '@fastgpt/global/core/ai/type.d';
+ import { NextApiResponse } from 'next';
+-import { responseWriteController } from '../../../../../common/response';
++import { responseWriteController } from '../../../../../common/response/index';
+ import { SseResponseEventEnum } from '@fastgpt/global/core/workflow/runtime/constants';
+ import { textAdaptGptResponse } from '@fastgpt/global/core/workflow/runtime/utils';
+ import { ChatCompletionRequestMessageRoleEnum } from '@fastgpt/global/core/ai/constants';
+diff --git a/packages/service/core/workflow/dispatch/agent/runTool/promptCall.ts b/packages/service/core/workflow/dispatch/agent/runTool/promptCall.ts
+index 58e95a05..f4a8d794 100644
+--- a/packages/service/core/workflow/dispatch/agent/runTool/promptCall.ts
++++ b/packages/service/core/workflow/dispatch/agent/runTool/promptCall.ts
+@@ -7,7 +7,7 @@ import {
+   ChatCompletionAssistantMessageParam
+ } from '@fastgpt/global/core/ai/type';
+ import { NextApiResponse } from 'next';
+-import { responseWriteController } from '../../../../../common/response';
++import { responseWriteController } from '../../../../../common/response/index';
+ import { SseResponseEventEnum } from '@fastgpt/global/core/workflow/runtime/constants';
+ import { textAdaptGptResponse } from '@fastgpt/global/core/workflow/runtime/utils';
+ import { ChatCompletionRequestMessageRoleEnum } from '@fastgpt/global/core/ai/constants';
+diff --git a/packages/service/core/workflow/dispatch/agent/runTool/toolChoice.ts b/packages/service/core/workflow/dispatch/agent/runTool/toolChoice.ts
+index 5bbfc838..f4c87156 100644
+--- a/packages/service/core/workflow/dispatch/agent/runTool/toolChoice.ts
++++ b/packages/service/core/workflow/dispatch/agent/runTool/toolChoice.ts
+@@ -10,7 +10,7 @@ import {
+   ChatCompletionAssistantMessageParam
+ } from '@fastgpt/global/core/ai/type';
+ import { NextApiResponse } from 'next';
+-import { responseWriteController } from '../../../../../common/response';
++import { responseWriteController } from '../../../../../common/response/index';
+ import { SseResponseEventEnum } from '@fastgpt/global/core/workflow/runtime/constants';
+ import { textAdaptGptResponse } from '@fastgpt/global/core/workflow/runtime/utils';
+ import { ChatCompletionRequestMessageRoleEnum } from '@fastgpt/global/core/ai/constants';
+diff --git a/packages/service/core/workflow/dispatch/chat/oneapi.ts b/packages/service/core/workflow/dispatch/chat/oneapi.ts
+index 347d164a..e0a88893 100644
+--- a/packages/service/core/workflow/dispatch/chat/oneapi.ts
++++ b/packages/service/core/workflow/dispatch/chat/oneapi.ts
+@@ -32,7 +32,7 @@ import {
+ import type { AIChatNodeProps } from '@fastgpt/global/core/workflow/runtime/type.d';
+ import { replaceVariable } from '@fastgpt/global/common/string/tools';
+ import type { ModuleDispatchProps } from '@fastgpt/global/core/workflow/runtime/type';
+-import { responseWriteController } from '../../../../common/response';
++import { responseWriteController } from '../../../../common/response/index';
+ import { getLLMModel } from '../../../ai/model';
+ import type { SearchDataResponseItemType } from '@fastgpt/global/core/dataset/type';
+ import { NodeInputKeyEnum, NodeOutputKeyEnum } from '@fastgpt/global/core/workflow/constants';
+diff --git a/packages/service/core/workflow/dispatch/utils.ts b/packages/service/core/workflow/dispatch/utils.ts
+index d73da314..4f7b8583 100644
+--- a/packages/service/core/workflow/dispatch/utils.ts
++++ b/packages/service/core/workflow/dispatch/utils.ts
+@@ -9,7 +9,7 @@ import {
+   RuntimeEdgeItemType,
+   SystemVariablesType
+ } from '@fastgpt/global/core/workflow/runtime/type';
+-import { responseWrite } from '../../../common/response';
++import { responseWrite } from '../../../common/response/index';
+ import { NextApiResponse } from 'next';
+ import { SseResponseEventEnum } from '@fastgpt/global/core/workflow/runtime/constants';
+ import { getNanoid } from '@fastgpt/global/common/string/tools';
+@@ -175,7 +175,9 @@ export const filterSystemVariables = (variables: Record<string, any>): SystemVar
+     chatId: variables.chatId,
+     responseChatItemId: variables.responseChatItemId,
+     histories: variables.histories,
+-    cTime: variables.cTime
++    cTime: variables.cTime,
++    teamId: variables.teamId || '',
++    tmbId: variables.tmbId || ''
+   };
+ };
+ 

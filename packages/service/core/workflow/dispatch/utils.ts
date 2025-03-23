@@ -9,7 +9,7 @@ import {
   RuntimeEdgeItemType,
   SystemVariablesType
 } from '@fastgpt/global/core/workflow/runtime/type';
-import { responseWrite } from '../../../common/response';
+import { responseWrite } from '../../../common/response/index';
 import { NextApiResponse } from 'next';
 import { SseResponseEventEnum } from '@fastgpt/global/core/workflow/runtime/constants';
 import { getNanoid } from '@fastgpt/global/common/string/tools';
@@ -175,7 +175,9 @@ export const filterSystemVariables = (variables: Record<string, any>): SystemVar
     chatId: variables.chatId,
     responseChatItemId: variables.responseChatItemId,
     histories: variables.histories,
-    cTime: variables.cTime
+    cTime: variables.cTime,
+    teamId: variables.teamId || '',
+    tmbId: variables.tmbId || ''
   };
 };
 

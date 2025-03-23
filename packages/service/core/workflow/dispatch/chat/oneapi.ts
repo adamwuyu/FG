@@ -32,7 +32,7 @@ import {
 import type { AIChatNodeProps } from '@fastgpt/global/core/workflow/runtime/type.d';
 import { replaceVariable } from '@fastgpt/global/common/string/tools';
 import type { ModuleDispatchProps } from '@fastgpt/global/core/workflow/runtime/type';
-import { responseWriteController } from '../../../../common/response';
+import { responseWriteController } from '../../../../common/response/index';
 import { getLLMModel } from '../../../ai/model';
 import type { SearchDataResponseItemType } from '@fastgpt/global/core/dataset/type';
 import { NodeInputKeyEnum, NodeOutputKeyEnum } from '@fastgpt/global/core/workflow/constants';

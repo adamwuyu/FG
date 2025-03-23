@@ -1,0 +1,265 @@
+diff --git a/packages/service/common/middle/entry.ts b/packages/service/common/middle/entry.ts
+index 2f49b543..7aa2ce64 100644
+--- a/packages/service/common/middle/entry.ts
++++ b/packages/service/common/middle/entry.ts
+@@ -41,11 +41,14 @@ export const NextEntry = ({ beforeCallback = [] }: { beforeCallback?: Promise<an
+             data: response
+           });
+         }
+-      } catch (error) {
++      } catch (error: any) {
+         return jsonRes(res, {
+           code: 500,
+-          error,
+-          url: req.url
++          message: error?.message || '服务器错误',
++          data: {
++            originalError: error,
++            url: req.url
++          }
+         });
+       }
+     };
+diff --git a/packages/service/common/middle/reqFrequencyLimit.ts b/packages/service/common/middle/reqFrequencyLimit.ts
+index 6205c47c..2dd90f05 100644
+--- a/packages/service/common/middle/reqFrequencyLimit.ts
++++ b/packages/service/common/middle/reqFrequencyLimit.ts
+@@ -33,7 +33,7 @@ export function useIPFrequencyLimit({
+     } catch (_) {
+       jsonRes(res, {
+         code: 429,
+-        error: `Too many request, request ${limit} times every ${seconds} seconds`
++        message: `Too many request, request ${limit} times every ${seconds} seconds`
+       });
+     }
+   };
+diff --git a/packages/service/core/workflow/dispatch/abandoned/runApp.ts b/packages/service/core/workflow/dispatch/abandoned/runApp.ts
+index 49693d5b..c14b0dea 100644
+--- a/packages/service/core/workflow/dispatch/abandoned/runApp.ts
++++ b/packages/service/core/workflow/dispatch/abandoned/runApp.ts
+@@ -46,6 +46,7 @@ export const dispatchAppRequest = async (props: Props): Promise<Response> => {
+   const { app: appData } = await authAppByTmbId({
+     appId: app.id,
+     tmbId: runningAppInfo.tmbId,
++    teamId: runningAppInfo.teamId,
+     per: ReadPermissionVal
+   });
+ 
+diff --git a/packages/service/core/workflow/dispatch/agent/runTool/functionCall.ts b/packages/service/core/workflow/dispatch/agent/runTool/functionCall.ts
+index 1ae995a1..79e3f4fd 100644
+--- a/packages/service/core/workflow/dispatch/agent/runTool/functionCall.ts
++++ b/packages/service/core/workflow/dispatch/agent/runTool/functionCall.ts
+@@ -10,7 +10,7 @@ import {
+   ChatCompletionAssistantMessageParam
+ } from '@fastgpt/global/core/ai/type.d';
+ import { NextApiResponse } from 'next';
+-import { responseWriteController } from '../../../../../common/response';
++import { responseWriteController } from '../../../../../common/response/index';
+ import { SseResponseEventEnum } from '@fastgpt/global/core/workflow/runtime/constants';
+ import { textAdaptGptResponse } from '@fastgpt/global/core/workflow/runtime/utils';
+ import { ChatCompletionRequestMessageRoleEnum } from '@fastgpt/global/core/ai/constants';
+diff --git a/packages/service/core/workflow/dispatch/agent/runTool/promptCall.ts b/packages/service/core/workflow/dispatch/agent/runTool/promptCall.ts
+index 58e95a05..f4a8d794 100644
+--- a/packages/service/core/workflow/dispatch/agent/runTool/promptCall.ts
++++ b/packages/service/core/workflow/dispatch/agent/runTool/promptCall.ts
+@@ -7,7 +7,7 @@ import {
+   ChatCompletionAssistantMessageParam
+ } from '@fastgpt/global/core/ai/type';
+ import { NextApiResponse } from 'next';
+-import { responseWriteController } from '../../../../../common/response';
++import { responseWriteController } from '../../../../../common/response/index';
+ import { SseResponseEventEnum } from '@fastgpt/global/core/workflow/runtime/constants';
+ import { textAdaptGptResponse } from '@fastgpt/global/core/workflow/runtime/utils';
+ import { ChatCompletionRequestMessageRoleEnum } from '@fastgpt/global/core/ai/constants';
+diff --git a/packages/service/core/workflow/dispatch/agent/runTool/toolChoice.ts b/packages/service/core/workflow/dispatch/agent/runTool/toolChoice.ts
+index 5bbfc838..f4c87156 100644
+--- a/packages/service/core/workflow/dispatch/agent/runTool/toolChoice.ts
++++ b/packages/service/core/workflow/dispatch/agent/runTool/toolChoice.ts
+@@ -10,7 +10,7 @@ import {
+   ChatCompletionAssistantMessageParam
+ } from '@fastgpt/global/core/ai/type';
+ import { NextApiResponse } from 'next';
+-import { responseWriteController } from '../../../../../common/response';
++import { responseWriteController } from '../../../../../common/response/index';
+ import { SseResponseEventEnum } from '@fastgpt/global/core/workflow/runtime/constants';
+ import { textAdaptGptResponse } from '@fastgpt/global/core/workflow/runtime/utils';
+ import { ChatCompletionRequestMessageRoleEnum } from '@fastgpt/global/core/ai/constants';
+diff --git a/packages/service/core/workflow/dispatch/chat/oneapi.ts b/packages/service/core/workflow/dispatch/chat/oneapi.ts
+index 347d164a..e0a88893 100644
+--- a/packages/service/core/workflow/dispatch/chat/oneapi.ts
++++ b/packages/service/core/workflow/dispatch/chat/oneapi.ts
+@@ -32,7 +32,7 @@ import {
+ import type { AIChatNodeProps } from '@fastgpt/global/core/workflow/runtime/type.d';
+ import { replaceVariable } from '@fastgpt/global/common/string/tools';
+ import type { ModuleDispatchProps } from '@fastgpt/global/core/workflow/runtime/type';
+-import { responseWriteController } from '../../../../common/response';
++import { responseWriteController } from '../../../../common/response/index';
+ import { getLLMModel } from '../../../ai/model';
+ import type { SearchDataResponseItemType } from '@fastgpt/global/core/dataset/type';
+ import { NodeInputKeyEnum, NodeOutputKeyEnum } from '@fastgpt/global/core/workflow/constants';
+diff --git a/packages/service/core/workflow/dispatch/plugin/run.ts b/packages/service/core/workflow/dispatch/plugin/run.ts
+index a81a6a86..efbb8849 100644
+--- a/packages/service/core/workflow/dispatch/plugin/run.ts
++++ b/packages/service/core/workflow/dispatch/plugin/run.ts
+@@ -9,7 +9,7 @@ import {
+   storeNodes2RuntimeNodes
+ } from '@fastgpt/global/core/workflow/runtime/utils';
+ import { DispatchNodeResultType } from '@fastgpt/global/core/workflow/runtime/type';
+-import { authPluginByTmbId } from '../../../../support/permission/app/auth';
++import { authAppByTmbId } from '../../../../support/permission/app/auth';
+ import { ReadPermissionVal } from '@fastgpt/global/support/permission/constant';
+ import { computedPluginUsage } from '../../../app/plugin/utils';
+ import { filterSystemVariables } from '../utils';
+@@ -37,9 +37,10 @@ export const dispatchRunPlugin = async (props: RunPluginProps): Promise<RunPlugi
+   const { files } = chatValue2RuntimePrompt(query);
+ 
+   // auth plugin
+-  const pluginData = await authPluginByTmbId({
++  const pluginData = await authAppByTmbId({
+     appId: pluginId,
+     tmbId: runningAppInfo.tmbId,
++    teamId: runningAppInfo.teamId,
+     per: ReadPermissionVal
+   });
+ 
+@@ -90,7 +91,7 @@ export const dispatchRunPlugin = async (props: RunPluginProps): Promise<RunPlugi
+       id: String(plugin.id),
+       // 如果是系统插件，则使用当前团队的 teamId 和 tmbId
+       teamId: plugin.teamId || runningAppInfo.teamId,
+-      tmbId: pluginData?.tmbId || runningAppInfo.tmbId
++      tmbId: pluginData?.app?.tmbId || runningAppInfo.tmbId
+     },
+     variables: runtimeVariables,
+     query: getPluginRunUserQuery({
+@@ -121,7 +122,7 @@ export const dispatchRunPlugin = async (props: RunPluginProps): Promise<RunPlugi
+       moduleLogo: plugin.avatar,
+       totalPoints: usagePoints,
+       pluginOutput: output?.pluginOutput,
+-      pluginDetail: pluginData?.permission?.hasWritePer // Not system plugin
++      pluginDetail: pluginData?.app?.permission?.hasWritePer // Not system plugin
+         ? flowResponses.filter((item) => {
+             const filterArr = [FlowNodeTypeEnum.pluginOutput];
+             return !filterArr.includes(item.moduleType as any);
+diff --git a/packages/service/core/workflow/dispatch/plugin/runApp.ts b/packages/service/core/workflow/dispatch/plugin/runApp.ts
+index 92a7b216..e2601d44 100644
+--- a/packages/service/core/workflow/dispatch/plugin/runApp.ts
++++ b/packages/service/core/workflow/dispatch/plugin/runApp.ts
+@@ -70,6 +70,7 @@ export const dispatchRunAppNode = async (props: Props): Promise<Response> => {
+   const { app: appData } = await authAppByTmbId({
+     appId: appId,
+     tmbId: runningAppInfo.tmbId,
++    teamId: runningAppInfo.teamId,
+     per: ReadPermissionVal
+   });
+   const { nodes, edges, chatConfig } = await getAppVersionById({
+diff --git a/packages/service/core/workflow/dispatch/utils.ts b/packages/service/core/workflow/dispatch/utils.ts
+index d73da314..26e9c50d 100644
+--- a/packages/service/core/workflow/dispatch/utils.ts
++++ b/packages/service/core/workflow/dispatch/utils.ts
+@@ -9,27 +9,28 @@ import {
+   RuntimeEdgeItemType,
+   SystemVariablesType
+ } from '@fastgpt/global/core/workflow/runtime/type';
+-import { responseWrite } from '../../../common/response';
++import { responseWrite } from '../../../common/response/index';
+ import { NextApiResponse } from 'next';
+ import { SseResponseEventEnum } from '@fastgpt/global/core/workflow/runtime/constants';
+ import { getNanoid } from '@fastgpt/global/common/string/tools';
+ import { SearchDataResponseItemType } from '@fastgpt/global/core/dataset/type';
+ import json5 from 'json5';
+ 
+-export const getWorkflowResponseWrite = ({
+-  res,
+-  detail,
+-  streamResponse,
+-  id = getNanoid(24),
+-  showNodeStatus = true
+-}: {
+-  res?: NextApiResponse;
+-  detail: boolean;
+-  streamResponse: boolean;
+-  id?: string;
+-  showNodeStatus?: boolean;
+-}) => {
+-  return ({
++export const getWorkflowResponseWrite =
++  ({
++    res,
++    detail,
++    streamResponse,
++    id = getNanoid(24),
++    showNodeStatus = true
++  }: {
++    res?: NextApiResponse;
++    detail: boolean;
++    streamResponse: boolean;
++    id?: string;
++    showNodeStatus?: boolean;
++  }) =>
++  ({
+     write,
+     event,
+     data,
+@@ -73,7 +74,6 @@ export const getWorkflowResponseWrite = ({
+       data: JSON.stringify(data)
+     });
+   };
+-};
+ 
+ export const filterToolNodeIdByEdges = ({
+   nodeId,
+@@ -175,7 +175,9 @@ export const filterSystemVariables = (variables: Record<string, any>): SystemVar
+     chatId: variables.chatId,
+     responseChatItemId: variables.responseChatItemId,
+     histories: variables.histories,
+-    cTime: variables.cTime
++    cTime: variables.cTime,
++    teamId: variables.teamId || '',
++    tmbId: variables.tmbId || ''
+   };
+ };
+ 
+diff --git a/packages/service/support/permission/app/auth.ts b/packages/service/support/permission/app/auth.ts
+index 815f1ffc..28d2bf8f 100644
+--- a/packages/service/support/permission/app/auth.ts
++++ b/packages/service/support/permission/app/auth.ts
+@@ -172,11 +172,11 @@ export const authApp = async ({
+   // tmbTeams的结构是：[teamId: { name: '组1' },teamId: { name: '组2' }]，提取其中的name组成新数组['组1','组2']
+   // 添加空值检查，防止访问null对象的name属性
+   const tmbTeamNames = tmbTeams
+-    .filter((item) => item.teamId && typeof item.teamId === 'object' && item.teamId.name) // 过滤掉teamId为null或没有name属性的记录
++    .filter((item) => item.teamId && typeof item.teamId === 'object' && 'name' in item.teamId) // 过滤掉teamId为null或没有name属性的记录
+     .map((item) => {
+       // 确保teamId是对象且有name属性
+-      if (typeof item.teamId === 'object' && item.teamId.name) {
+-        return item.teamId.name;
++      if (typeof item.teamId === 'object' && 'name' in item.teamId) {
++        return (item.teamId as { name: string }).name;
+       }
+       return '';
+     })
+diff --git a/packages/service/support/permission/auth/openapi.ts b/packages/service/support/permission/auth/openapi.ts
+index f5121f35..e7c94ad2 100644
+--- a/packages/service/support/permission/auth/openapi.ts
++++ b/packages/service/support/permission/auth/openapi.ts
+@@ -34,7 +34,7 @@ export async function authOpenApiKeyCrud({
+ 
+     if (!!openapi.appId) {
+       // if is not global openapi, then auth app
+-      const { app } = await authAppByTmbId({ appId: openapi.appId!, tmbId, per });
++      const { app } = await authAppByTmbId({ appId: openapi.appId!, tmbId, teamId, per });
+       return {
+         permission: app.permission,
+         openapi
+diff --git a/packages/service/support/permission/publish/authLink.ts b/packages/service/support/permission/publish/authLink.ts
+index f48c05fe..3c2ad134 100644
+--- a/packages/service/support/permission/publish/authLink.ts
++++ b/packages/service/support/permission/publish/authLink.ts
+@@ -38,6 +38,7 @@ export async function authOutLinkCrud({
+     const { app } = await authAppByTmbId({
+       tmbId,
+       appId: outLink.appId,
++      teamId,
+       per
+     });
+ 
