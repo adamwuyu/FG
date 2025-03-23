@@ -1,0 +1,3 @@
+本项目是与大模型对话的应用，在/chat页与大模型对话时，有toaster弹出错误信息：
+**(0 , _common_response__WEBPACK_IMPORTED_MODULE_3__.responseWrite) is not a function**
+

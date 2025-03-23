@@ -4,9 +4,9 @@ const axios = require('axios');
 async function testRequest() {
   try {
     const response = await axios.post(
-      'https://api.superoceansh.com/v1/chat/completions',
+      'https://api.wk-xj.com/v1/chat/completions',
       {
-        model: 'gpt-4o',
+        model: 'gpt-4o-mini',
         messages: [{ role: 'user', content: 'Say hello.' }]
       },
       {

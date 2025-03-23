@@ -167,8 +167,8 @@ const ListItem = () => {
                 flexDirection={'column'}
                 bgImage={
                   app.type === 'folder'
-                    ? `url('https://i.superoceansh.com/imgs/folder.jpg')`
-                    : `url('https://i.superoceansh.com/imgs/${app.name}.jpg')`
+                    ? `url('https://i.wk-xj.com/imgs/folder.jpg')`
+                    : `url('https://i.wk-xj.com/imgs/${app.name}.jpg')`
                 } // 仅在 app.type 为 folder 时添加背景图
                 bgSize="cover" // 背景图覆盖整个区域
                 bgPosition="center" // 背景图居中
