@@ -63,3 +63,5 @@ files/helm/fastgpt/values.yaml
 cookies.txt
 
 *.log
+
+/test_results/
