@@ -119,9 +119,8 @@ function OrgTable({ Tabs }: { Tabs: React.ReactNode }) {
     const splitPath = parentPath.split('/').filter(Boolean);
     return splitPath
       .map((id) => {
-        const org = orgs.find((org) => org.pathId === id)!;
-
-        if (org.path === '') return;
+        const org = orgs.find((org) => org.pathId === id);
+        if (!org || org.path === '') return;
 
         return {
           parentId: getOrgChildrenPath(org),
