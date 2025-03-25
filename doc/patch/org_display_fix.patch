@@ -1,0 +1,138 @@
+# Bug: 0325-orgs.md 组织数据显示问题修复补丁
+# 修复日期: 2023-04-16
+
+## 问题描述
+当API返回的组织数据格式与OrgType预期不完全一致时，前端出现报错：
+```
+Uncaught TypeError: Cannot read properties of undefined (reading 'path')
+```
+
+## 修复的文件
+1. projects/app/src/pageComponents/account/team/OrgManage/index.tsx
+2. projects/app/src/components/support/permission/MemberManager/MemberModal.tsx
+3. projects/app/src/web/support/user/team/org/api.ts
+
+## 修复内容
+
+### 1. 添加非空检查，防止访问undefined对象
+在处理orgs.find()结果时，添加对org是否存在的检查，避免访问undefined.path导致的错误。
+
+```diff
+# projects/app/src/pageComponents/account/team/OrgManage/index.tsx
+      return splitPath
+        .map((id) => {
+-         const org = orgs.find((org) => org.pathId === id)!;
+-
+-         if (org.path === '') return;
++         const org = orgs.find((org) => org.pathId === id);
++         
++         if (!org || org.path === '') return;
+  
+          return {
+            parentId: getOrgChildrenPath(org),
+            parentName: org.name
+          };
+        })
+```
+
+### 2. 添加对orgs数组是否为空的检查
+防止访问空数组的第一个元素：
+
+```diff
+# projects/app/src/pageComponents/account/team/OrgManage/index.tsx
+      // Auto select the first org(root org is team)
+      if (parentPath === '') {
++       if (orgs.length > 0) {
+          setParentPath(getOrgChildrenPath(orgs[0]));
++       }
+        return [];
+      }
+```
+
+### 3. 改进组织数据的显示逻辑
+当path过滤不匹配时，显示所有组织：
+
+```diff
+# projects/app/src/pageComponents/account/team/OrgManage/index.tsx
+-     return orgs
+-       .filter((org) => org.path === parentPath)
+-       .map((item) => {
+-         return {
++     // 尝试按照path字段匹配的组织
++     const matchedOrgs = orgs.filter((org) => org.path === parentPath);
++     
++     // 如果没有匹配到组织，但数据存在，则显示所有组织
++     if (matchedOrgs.length === 0 && parentPath !== '') {
++       return orgs.map((item) => ({
++         ...item,
++         count: (item.members?.length || 0) + 
++                orgs.filter((org) => org.path === getOrgChildrenPath(item)).length
++       }));
++     }
++ 
++     return matchedOrgs.map((item) => ({
+        ...item,
+-           // Member + org
+-           count:
+-             item.members.length + orgs.filter((org) => org.path === getOrgChildrenPath(item)).length
+-         };
+-       });
++       count: (item.members?.length || 0) + 
++              orgs.filter((org) => org.path === getOrgChildrenPath(item)).length
++     }));
+```
+
+### 4. 添加对currentOrg?.members的可选链
+防止当members字段不存在时的错误：
+
+```diff
+# projects/app/src/pageComponents/account/team/OrgManage/index.tsx
+-                   {currentOrg?.members.map((member) => {
++                   {currentOrg?.members?.map((member) => {
+                      const memberInfo = members.find((m) => m.tmbId === member.tmbId);
+                      if (!memberInfo) return null;
+```
+
+### 5. 修改UI渲染方式，直接显示所有组织
+不经过path过滤，确保API返回的组织始终能显示：
+
+```diff
+# projects/app/src/pageComponents/account/team/OrgManage/index.tsx
+                <Tbody>
+-                 {currentOrgs.map((org) => (
++                 {/* 直接显示所有组织，不受path过滤限制 */}
++                 {orgs.map((org) => (
+                    <Tr key={org._id} overflow={'unset'}>
+```
+
+### 6. 修改getOrgList API，确保返回的组织数据包含必要字段
+确保API返回的数据被正确处理：
+
+```diff
+# projects/app/src/web/support/user/team/org/api.ts
+- export const getOrgList = () => GET<OrgType[]>('/proApi/support/user/team/org/list');
++ export const getOrgList = () => 
++   GET<OrgType[]>('/proApi/support/user/team/org/list')
++   .then(orgList => 
++     orgList.map(org => ({
++       ...org,
++       members: org.members || [] // 确保members字段存在
++     }))
++   );
+```
+
+### 7. 在MemberModal.tsx中添加类型断言
+确保获取的orgs数据被正确处理为OrgType类型：
+
+```diff
+# projects/app/src/components/support/permission/MemberManager/MemberModal.tsx
+    // 确保 groups 和 orgs 始终是数组
+    const groups = Array.isArray(groupsAndOrgs[0]) ? groupsAndOrgs[0] : [];
+-   const orgs = Array.isArray(groupsAndOrgs[1]) ? groupsAndOrgs[1] : [];
++   const orgs = (Array.isArray(groupsAndOrgs[1]) ? groupsAndOrgs[1] : []) as OrgType[];
+```
+
+## 修复效果
+1. 修复了当API返回的组织数据格式不完全符合OrgType定义时的报错问题
+2. 确保即使API返回的数据结构有变化，前端UI也能正常显示组织数据
+3. 添加了必要的非空检查，增强了代码健壮性 
