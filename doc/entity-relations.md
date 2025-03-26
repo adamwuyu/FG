@@ -40,8 +40,11 @@
  ObjectId _id
  ObjectId teamId
  String path
- String name
  String pathId
+ String name
+ String avatar
+ String description
+ Date updateTime
  }
 
  TeamGroup {
@@ -49,6 +52,7 @@
  ObjectId teamId
  String name
  String avatar
+ Date updateTime
  }
 
  TeamOrgMember {
@@ -65,6 +69,33 @@
  String role
  }
 ```
+
+## 组织架构说明
+
+### Org(部门)与Group(群组)的区别
+
+1. 组织结构
+   - Org(部门)：采用层级结构，通过`path`和`pathId`字段维护部门层级关系，可构建树形组织架构
+   - Group(群组)：采用扁平结构，群组之间无层级关系，都是平级的
+
+2. 权限管理
+   - Group(群组)：成员有明确的角色划分(owner/admin/member)，主要用于资源权限管理
+   - Org(部门)：成员无角色区分，主要用于组织架构管理
+
+3. 业务用途
+   - Org(部门)
+     - 用于模拟企业的组织架构
+     - 支持部门的层级管理
+     - 每个团队都有一个ROOT部门作为顶级部门
+     - 主要用于组织结构展示和管理
+   
+   - Group(群组)
+     - 用于资源权限管理和协作
+     - 每个团队默认有一个Default群组
+     - 可以灵活创建不同的群组来管理不同资源的访问权限
+     - 主要用于团队协作和资源共享
+
+这种设计将"组织架构管理"和"权限管理"进行了分离，使系统更加灵活和清晰。
 
 ## 资源共享机制图
 
